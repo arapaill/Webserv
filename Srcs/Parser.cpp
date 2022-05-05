@@ -13,3 +13,8 @@ Parser&			Parser::operator=(const Parser &rhs)
 	this->_path_file = rhs._path_file;
 	return (*this);
 }
+
+void    init_config_file(void)
+{
+    
+}

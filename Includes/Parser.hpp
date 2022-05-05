@@ -11,6 +11,8 @@ class Parser
 		~Parser(void);
 
         Parser & operator=(const Parser &rhs);
+        
+        void    init_config_file(void);
 
     private:
         Config  _config_file;
