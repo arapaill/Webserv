@@ -1,10 +1,12 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
+# include "t_network.hpp"
+
 class Config
 {
 	public:
-		Config() : _network(NULL), _root(""), _server_name(""), _index("") {};
+		Config() :  _root(""), _server_name(""), _index("") {};
 		Config(Config const &other) {*this = other;};
 		~Config() {};
 
@@ -14,6 +16,7 @@ class Config
 			_root = rhs._root;
 			_server_name = rhs._server_name;
 			_index = rhs._index;
+			return *this;
 		}
 
 		void		set_network(t_network &network) {_network = network;};

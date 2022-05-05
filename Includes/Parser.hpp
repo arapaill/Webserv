@@ -13,7 +13,8 @@ class Parser
         Parser & operator=(const Parser &rhs);
 
     private:
-        Config  config_file;
+        Config  _config_file;
+        std::string _path_file;
 };
 
 #endif
