@@ -1,7 +1,7 @@
 #ifndef T_NETWORK
 #define T_NETWORK
 
-#include <string>
+# include <string>
 # include <netinet/in.h>
 # include <sys/socket.h>
 # include <netinet/in.h>
