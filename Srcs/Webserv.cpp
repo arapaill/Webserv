@@ -9,6 +9,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#define PORT 8080
+
+
 /* struct sockaddr_in
 {
 	__uint8_t         sin_len;
@@ -31,7 +34,7 @@ int main()
 
 	// 2. Identify (name) the socket
 	struct sockaddr_in address;
-	const int PORT = 8080;
+	int addrlen = sizeof(address);
 
 	memset((char *)&address, 0, sizeof(address));
 	address.sin_family = AF_INET;
@@ -54,7 +57,7 @@ int main()
 			return (-1);
 		}
 		int new_socket;
-		if ((new_socket = accept(test_server, NULL, NULL)) < 0)
+		if ((new_socket = accept(test_server, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
 		{
 			std::cout << "Error accepting\n";
 			return (-1);
