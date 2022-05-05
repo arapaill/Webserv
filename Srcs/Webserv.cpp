@@ -1,84 +1,58 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <string>
-#include <iostream>
-#include <cstring>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include "Webserv.hpp"
 
-#define PORT 8080
+// Public
+Webserv::Webserv() {};
+Webserv::~Webserv() {};
 
-
-/* struct sockaddr_in
+void Webserv::run()
 {
-	__uint8_t         sin_len;
-    sa_family_t       sin_family;	// La famille de l'addresse de notre socket = IF_INET
-    in_port_t         sin_port;		// Le port à utiliser, par défaut 80
-    struct in_addr    sin_addr;		// L'addresse IP du serveur (IP du PC) On peut ça vide par défaut
-    char              sin_zero[8];
-}; */
 
-int main()
-{
-	// 1. Create the socket
-	int test_server = socket(AF_INET, SOCK_STREAM, 0);
-
-	if (test_server < 0)
-	{
-		std::cout << "Error creating Socket\n";
-		return (-1);
-	}
-
-	// 2. Identify (name) the socket
-	struct sockaddr_in address;
-	int addrlen = sizeof(address);
-
-	memset((char *)&address, 0, sizeof(address));
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(PORT);
-
-	if (bind(test_server, (struct sockaddr *)&address, sizeof(address)) < 0)
-	{
-		std::cout << "Error binding Socket\n";
-		return (-1);
-	}
-
-	std::cout << "Server Listening...\n";
-	while (1)
-	{
-		// 3. On the server, wait for an incoming connection
-		if (listen(test_server, 5) < 0)
-		{
-			std::cout << "Error listening\n";
-			return (-1);
-		}
-		int new_socket;
-		if ((new_socket = accept(test_server, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
-		{
-			std::cout << "Error accepting\n";
-			return (-1);
-		}
-
-		// 4. Send and receive messages
-		char buffer[1024] = {0};
-
-		int valread = read(new_socket, buffer, 1024);
-		std::cout << buffer;
-		if (valread < 0)
-		{
-			std::cout << "Nothing received\n";
-		}
-		char * hello = "Hello from the server"; // IMPORTANT
-		write(new_socket, hello, strlen(hello));
-
-		// 5. Close the socket
-		close(new_socket);
-	}
-	close(test_server);
-	return (0);
 }
 
+// Private
+void Webserv::init()
+{
+	
+}
+
+
+
+void Webserv::initServers()
+{
+	for (configVector::iterator it = _server.begin() ; it != _server.end() ; it++)
+	{
+		initSocket(network);
+	}
+}
+
+/* S'occupe de créer le socket avec l'addresse IP 
+** ainsi que le port renseigné dans network.
+** Le socket est réutilisable et non-bloquant.
+*/
+int Webserv::initSocket(t_network network)
+{
+	int 				socket_listening;
+	struct sockaddr_in 	server_address;
+
+	if ((socket_listening = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	{
+		throw (std::logic_error("Error: socket() failed"));
+	}
+
+	set::memset((char *)&server_address, 0, sizeof(server_address));
+	server_address.sin_family = AF_INET;
+	server_address.sin_addr.s_addr = network.host.s_addr;
+	server_address.sin_port = htons(network.port)
+
+	if (bind(sockaddr_in, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+	{
+		throw (std::logic_error("Error: bind() failed"));
+	}
+	
+	if (listen(socket_listening, MAX_CLIENTS) < 0)
+	{
+		throw (std::logic_error("Error: listen() failed"));
+	}
+	
+	return (socket_listening);
+}
