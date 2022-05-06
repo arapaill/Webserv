@@ -3,8 +3,13 @@
 
 # include <sys/types.h>
 # include <sys/socket.h>
-# include "../Includes/Parser.hpp"
-# include "../Includes/Config.hpp"
+# include <cstring>
+# include <iostream> // Temporaire
+
+# include "Parser.hpp"
+# include "Config.hpp"
+# include "t_network.hpp"
+
 
 # define MAX_CLIENTS 10 // À changer de place
 
@@ -12,17 +17,23 @@ class Webserv
 {
 	public:
 		typedef std::vector<Config>	configVector; // Temporaire
+		typedef std::vector<int>	serverFDVector; // Temporaire
+
 
 		Webserv();
 		~Webserv();
 
 		void	run();
+		void	setParser( Parser & parser );
 	private:
 		Parser			_parser;
-		configVector 	_server;
+		configVector 	_serversConfig;
+		serverFDVector	_serversFD;
 
+		void	init();
 		void	initServers();
-		void	initSocket();
+		int		initSocket( t_network network );
+		void	AcceptNewClient( int server );
 };
 
 
