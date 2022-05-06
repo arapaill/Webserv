@@ -28,7 +28,17 @@ class Config
 		std::string	&get_root(void) {return(_root);};
 		std::string	&get_server_name(void){return(_server_name);};
 		std::string	&get_index(void) {return(_index);};
-
+        /*
+        void    debug(void)
+        {
+            std::cout << "__________ DEBUG __________\n";
+            _network.debug();
+            std::cout << "ROOT : " << _root << std::endl;
+            std::cout << "SERVER_NAME : " << _server_name << std::endl;
+            std::cout << "INDEX : " << _index << std::endl;
+            std::cout << "__________ END __________\n";
+        }
+        */
 	private:
 		t_network			_network;
 		std::string         _root;

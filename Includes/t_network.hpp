@@ -6,7 +6,7 @@
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <arpa/inet.h>
-# include <ostream>
+#include <iostream>
 
 class   t_network
 {
@@ -33,7 +33,14 @@ class   t_network
 		struct in_addr	&get_host(void) {return(_host);};
 		int				&get_port(void) {return(_port);};
 		std::string		&get_host_name(void) {return(_host_name);};
-
+        /*
+        void    debug()
+        {
+            std::cout << "NETWORK.HOST.LEN: " <<  _host.s_len << std::endl;
+            std::cout << "NETWORK.PORT: " <<  _port << std::endl;
+            std::cout << "NETWORK.PORT: " <<  _host_name << std::endl;
+        }
+        */
 	private:
 		struct in_addr	_host;
 		int				_port;

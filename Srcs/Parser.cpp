@@ -1,8 +1,5 @@
 #include "../Includes/Parser.hpp"
 
-#include <iostream>
-#include <fstream>
-
 Parser::Parser(void) {}
 Parser::Parser(Parser const & other)
 {
@@ -17,26 +14,53 @@ Parser&			Parser::operator=(const Parser &rhs)
 	return (*this);
 }
 
-void    init_vector_file(void)
+void    Parser::init_vector_file(void)
 {
-    std::ifstream file;
-    std::string string_file;
+	std::ifstream file;
+	std::string string_file;
 
-    file.open(../Configs/config.conf);
-    if(!file.is_open())
-    {
-        std::cout << "Cannot open config file";
-        exit(0);
-    }
-    while(file)
-    {
-        file >> string_file;
-        _vector_file.push_back(string_file);
-    }
+	file.open("../Configs/config.conf");
+	if(!file.is_open())
+	{
+		std::cout << "Cannot open config file";
+		exit(0);
+	}
+	while(file)
+	{
+		file >> string_file;
+		_vector_file.push_back(string_file);
+	}
 }
 
-void    parse(void)
+void    Parser::get_info(void)
+{
+	std::string	info;
+
+	for(std::size_t i = 0; i != _vector_file.size(); i++)
+	{
+		info = _vector_file.at(i);
+		if(info.find("listen"))
+			is_listen(info);
+			/*
+		else if (info.find("server_name"))
+			is_server_name(info);
+		else if(info.find("root"))
+			is_root(info);
+		else if(info.find("index"))
+			is_index(info);
+			*/
+	}
+
+}
+
+void    Parser::parse(void)
 {
    init_vector_file();
+   get_info();
 
+}
+
+int main()
+{
+	return(0);
 }
