@@ -30,6 +30,7 @@ void    Parser::is_listen(std::string info)
 {
 	std::vector<std::string> cmd;
 	std::string tmp;
+   // std::string	host;
 
 	cmd = split(info, ' ');
 	for(std::size_t i = 0; i != _vector_file.size(); i++)
@@ -39,7 +40,7 @@ void    Parser::is_listen(std::string info)
 			_config_file.get_network().get_port() = atoi(tmp.c_str());
 		if(!_config_file.get_network().get_port())
 			_config_file.get_network().get_port() = 80;
-		//if(!_config_file.get_network().get_host())
-			//!_config_file.get_network().get_host().sin_addr.s_addr = "0.0.0.0";
+		if(!_config_file.get_network().get_host().s_addr)
+			_config_file.get_network().get_host().s_addr = inet_addr("0.0.0.0");
 	}
 }

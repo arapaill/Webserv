@@ -30,7 +30,7 @@ class   t_network
 		void			set_port(int port) {_port = port;};
 		void			set_host_name(std::string host_name) { _host_name = host_name;};
 
-		struct sockaddr_in	& get_host(void) {return(_host);};
+		struct in_addr	& get_host(void) {return(_host);};
 		int				& get_port(void) {return(_port);};
 		std::string		& get_host_name(void) {return(_host_name);};
         /*
@@ -42,7 +42,7 @@ class   t_network
         }
         */
 	private:
-		struct sockaddr_in	_host;
+		struct in_addr	_host;
 		int				_port;
 		std::string		_host_name;
 };
