@@ -38,5 +38,5 @@ void    init_vector_file(void)
 void    parse(void)
 {
    init_vector_file();
-   
+
 }
