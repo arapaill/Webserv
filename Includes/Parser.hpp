@@ -5,6 +5,7 @@
 # include <vector>
 #include <iostream>
 #include <fstream>
+#include <fstream>
 
 class Parser
 {
@@ -21,7 +22,7 @@ class Parser
 
         void    is_listen(std::string info);
         
-
+        Config  &get_config_file(void){return(_config_file);};
     private:
         Config  _config_file;
         std::string _path_file;
