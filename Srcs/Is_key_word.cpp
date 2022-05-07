@@ -31,30 +31,29 @@ void    Parser::is_listen(std::string info)
 	std::vector<std::string> cmd;
 	std::string tmp;
     std::string	host;
-    std::string address;
 
 	cmd = split(info, ' ');
-   // address = cmd.at(1);
 	for(std::size_t i = 0; i != cmd.size(); i++)
 	{
 		tmp = cmd.at(i);
+        
         std::cout << "TMP:" << tmp << std::endl;
 		if(isNumber(tmp))
         {
 			_config_file.get_network().get_port() = atoi(tmp.c_str());
         }
-        if((address.find(":")) == std::string::npos &&
-        ( address.find(".") != std::string::npos || address == "localhost"))
+        if((tmp.find(":")) == std::string::npos &&
+        ( tmp.find(".") != std::string::npos || tmp == "localhost"))
         {
-            if (address == "localhost")
+            if (tmp == "localhost")
 			    host = "127.0.0.1";
             else
-			    host = address;
+			    host = tmp;
+            //std::cout << "HOST: " << host << std::endl;
             _config_file.get_network().get_host().s_addr = inet_addr(host.c_str());
         }
-        
 	}
-    if(!_config_file.get_network().get_port())
+    if(_config_file.get_network().get_port() == -1)
 			_config_file.get_network().get_port() = 80;
 	if(!_config_file.get_network().get_host().s_addr)
 		_config_file.get_network().get_host().s_addr = inet_addr("0.0.0.0");

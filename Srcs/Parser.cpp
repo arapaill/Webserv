@@ -35,14 +35,15 @@ void    Parser::init_vector_file(void)
 		file >> string_file;
 		concat_string_file += string_file;
 		concat_string_file += " ";
-		
 		if(concat_string_file.find(';') != std::string::npos
 			|| concat_string_file.find('{') != std::string::npos
 			|| concat_string_file.find('}') != std::string::npos)
 		{
+			if(concat_string_file.find(';') != std::string::npos)
+				concat_string_file.resize(concat_string_file.size() - 2);
 			//std::cout << concat_string_file << std::endl;
 			_vector_file.push_back(concat_string_file);
-			concat_string_file = "";
+			concat_string_file.clear();
 		}
 	}
 }
@@ -54,7 +55,7 @@ void    Parser::get_info(void)
 	for(std::size_t i = 0; i != _vector_file.size() && _vector_file.at(i) != "}"; i++)
 	{
 		info = _vector_file.at(i);
-       //	std::cout << "INFO:" << info << std::endl;
+       	//std::cout << "INFO:" << info << std::endl;
 		if(info.find("listen") != std::string::npos)
 		{
 			//std::cout << "in listen \n";
@@ -84,7 +85,7 @@ void	Parser::init_config_file(void)
 
 void    Parser::parse(void)
 {
-	init_config_file();
+	//init_config_file();
 	init_vector_file();
 	get_info();
 
