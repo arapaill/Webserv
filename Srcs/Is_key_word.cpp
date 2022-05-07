@@ -34,12 +34,15 @@ void    Parser::is_listen(std::string info)
     std::string address;
 
 	cmd = split(info, ' ');
-    address = cmd.at(1);
-	for(std::size_t i = 0; i != _vector_file.size(); i++)
+   // address = cmd.at(1);
+	for(std::size_t i = 0; i != cmd.size(); i++)
 	{
-		tmp = _vector_file.at(i);
-		if(isNumber(tmp) && !_config_file.get_network().get_port())
+		tmp = cmd.at(i);
+        std::cout << "TMP:" << tmp << std::endl;
+		if(isNumber(tmp))
+        {
 			_config_file.get_network().get_port() = atoi(tmp.c_str());
+        }
         if((address.find(":")) == std::string::npos &&
         ( address.find(".") != std::string::npos || address == "localhost"))
         {
@@ -55,4 +58,10 @@ void    Parser::is_listen(std::string info)
 			_config_file.get_network().get_port() = 80;
 	if(!_config_file.get_network().get_host().s_addr)
 		_config_file.get_network().get_host().s_addr = inet_addr("0.0.0.0");
+}
+
+void    Parser::is_server_name(std::string info)
+{
+    std::vector<std::string> cmd;
+    cmd = split(info, ' ');
 }

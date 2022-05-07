@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <fstream>
+# include <sstream>
 
 class Parser
 {
@@ -17,10 +18,12 @@ class Parser
         Parser & operator=(const Parser &rhs);
         
         void    init_vector_file(void); // while loop that put .conf file in vector
+        void	init_config_file(void);
         void    parse(void);
         void    get_info(void);
 
         void    is_listen(std::string info);
+        void    is_server_name(std::string info);
         
         Config  &get_config_file(void){return(_config_file);};
     private:

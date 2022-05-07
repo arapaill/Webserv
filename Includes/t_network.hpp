@@ -26,7 +26,7 @@ class   t_network
 			return (*this);
 		}
 
-		//void			set_host(struct in_addr host) {_host = host;};
+		void			set_host(struct in_addr host) {_host = host;};
 		void			set_port(int port) {_port = port;};
 		void			set_host_name(std::string host_name) { _host_name = host_name;};
 
