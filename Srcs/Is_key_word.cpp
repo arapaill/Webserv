@@ -30,14 +30,26 @@ void    Parser::is_listen(std::string info)
 {
 	std::vector<std::string> cmd;
 	std::string tmp;
-   // std::string	host;
+    std::string	host;
+    std::string address;
 
 	cmd = split(info, ' ');
+    address = cmd.at(1);
 	for(std::size_t i = 0; i != _vector_file.size(); i++)
 	{
 		tmp = _vector_file.at(i);
 		if(isNumber(tmp) && !_config_file.get_network().get_port())
 			_config_file.get_network().get_port() = atoi(tmp.c_str());
+        if((address.find(":")) == std::string::npos &&
+        ( address.find(".") != std::string::npos || address == "localhost"))
+        {
+            if (address == "localhost")
+			    host = "127.0.0.1";
+            else
+			    host = address;
+            _config_file.get_network().get_host().s_addr = inet_addr(host.c_str());
+        }
+        
 	}
     if(!_config_file.get_network().get_port())
 			_config_file.get_network().get_port() = 80;
