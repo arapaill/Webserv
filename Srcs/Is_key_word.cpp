@@ -33,11 +33,16 @@ void    Parser::is_listen(std::string info)
     std::string	host;
 
 	cmd = split(info, ' ');
+    if(cmd.size() < 2)
+    {
+        std::cout << "not enough directives for network\n";
+        exit(1);
+    }
 	for(std::size_t i = 0; i != cmd.size(); i++)
 	{
 		tmp = cmd.at(i);
         
-        std::cout << "TMP:" << tmp << std::endl;
+       // std::cout << "TMP:" << tmp << std::endl;
 		if(isNumber(tmp))
         {
 			_config_file.get_network().get_port() = atoi(tmp.c_str());
@@ -52,6 +57,7 @@ void    Parser::is_listen(std::string info)
             //std::cout << "HOST: " << host << std::endl;
             _config_file.get_network().get_host().s_addr = inet_addr(host.c_str());
         }
+        tmp.clear();
 	}
     if(_config_file.get_network().get_port() == -1)
 			_config_file.get_network().get_port() = 80;
@@ -62,5 +68,57 @@ void    Parser::is_listen(std::string info)
 void    Parser::is_server_name(std::string info)
 {
     std::vector<std::string> cmd;
+    std::string tmp;
     cmd = split(info, ' ');
+
+    if(cmd.size() < 2)
+    {
+        std::cout << "not enough directives for server_name\n";
+        exit(1);
+    }
+    if(cmd.size() > 3)
+    {
+        std::cout << "too much directives for server_name\n";
+        exit(1);
+    }
+    tmp = cmd.at(1) + ' ' + cmd.at(2);
+    _config_file.set_server_name(tmp);
+}
+
+void    Parser::is_root(std::string info)
+{
+    std::vector<std::string> cmd;
+    std::string tmp;
+    cmd = split(info, ' ');
+
+    if(cmd.size() < 2)
+    {
+        std::cout << "not enough directives for root\n";
+        exit(1);
+    }
+    if(cmd.size() > 2)
+    {
+        std::cout << "too much directives for root\n";
+        exit(1);
+    }
+    _config_file.set_root(cmd.at(1));
+}
+
+void    Parser::is_index(std::string info)
+{
+    std::vector<std::string> cmd;
+    std::string tmp;
+    cmd = split(info, ' ');
+
+    if(cmd.size() < 2)
+    {
+        std::cout << "not enough directives for index\n";
+        exit(1);
+    }
+    if(cmd.size() > 2)
+    {
+        std::cout << "too much directives for index\n";
+        exit(1);
+    }
+    _config_file.set_index(cmd.at(1));
 }

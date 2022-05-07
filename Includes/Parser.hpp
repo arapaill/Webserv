@@ -24,6 +24,8 @@ class Parser
 
         void    is_listen(std::string info);
         void    is_server_name(std::string info);
+        void    is_root(std::string info);
+        void    is_index(std::string info);
         
         Config  &get_config_file(void){return(_config_file);};
     private:

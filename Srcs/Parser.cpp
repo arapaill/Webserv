@@ -56,21 +56,18 @@ void    Parser::get_info(void)
 	{
 		info = _vector_file.at(i);
        	//std::cout << "INFO:" << info << std::endl;
-		if(info.find("listen") != std::string::npos)
+		if(info.find("listen ") != std::string::npos)
 		{
 			//std::cout << "in listen \n";
 			is_listen(info);
 		}
-		else if (info.find("server_name"))
+		else if (info.find("server_name ") != std::string::npos)
 			is_server_name(info);
-        /*
-		else if(info.find("root"))
+		else if(info.find("root ") != std::string::npos)
 			is_root(info);
-		else if(info.find("index"))
+		else if(info.find("index ") != std::string::npos)
 			is_index(info);
-			*/
 	}
-
 }
 
 void	Parser::init_config_file(void)
@@ -96,6 +93,6 @@ int main()
 	Parser pars;
 
 	pars.parse();
-	std::cout << pars.get_config_file().get_network().get_port() << std::endl;
+	//std::cout << pars.get_config_file().get_network().get_port() << std::endl;
 	return(0);
 }
