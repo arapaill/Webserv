@@ -87,12 +87,3 @@ void    Parser::parse(void)
 	get_info();
 
 }
-
-int main()
-{
-	Parser pars;
-
-	pars.parse();
-	//std::cout << pars.get_config_file().get_network().get_port() << std::endl;
-	return(0);
-}

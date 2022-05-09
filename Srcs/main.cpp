@@ -8,6 +8,7 @@ int main()
 	Webserv server;
 	Parser	parser;
 
+	parser.parse();
 	server.setParser(parser);
 	server.run();
 }
