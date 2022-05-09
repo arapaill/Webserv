@@ -1,4 +1,4 @@
-#include "../Includes/Webserv.hpp"
+#include "Webserv.hpp"
 
 // Public
 Webserv::Webserv() {};
@@ -76,23 +76,10 @@ void Webserv::AcceptNewClient( int server )
 	std::cout << "Client connected to server !\n";
 
 	// Temporaire
-	char buffer[1024] = {0};
+	ResponseHTTP response;
 
-	int valread = read(new_socket, buffer, 1024);
-	std::cout << buffer;
-
-	std::ifstream index("../HTML/index.html");
-	std::string file;
-	std::string line;
-
-	while (getline(index, line))
-		file += line + '\n';
-	index.close();
-
-	std::string s_response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: ";
-	s_response += file.size();
-	s_response += "\n\n";
-	s_response += file;
-	char *		c_response = &s_response[0];
+	response.requestFile("index.html");
+	std::string s_response = response.getResponseHTTP();
+	char * c_response = &s_response[0];
 	write(new_socket, c_response, strlen(c_response));
 }
