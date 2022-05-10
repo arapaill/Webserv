@@ -16,6 +16,8 @@ Parser&			Parser::operator=(const Parser &rhs)
 {
 	this->_config_file = rhs._config_file;
 	this->_path_file = rhs._path_file;
+    this->_allblock = rhs._allblock;
+    this->_vector_Config = rhs._vector_Config;
 	return (*this);
 }
 
@@ -106,9 +108,10 @@ void    Parser::parse(void)
 	    get_info(_allblock.at(i));
         _vector_Config.push_back(_config_file);
     }
-    std::cout << _vector_Config.at(0).get_server_name() << std::endl;
+   // std::cout << _vector_Config.at(0).get_server_name() << std::endl;
 
 }
+
 /*
 int main()
 {
