@@ -28,6 +28,7 @@ class Parser
         void    is_index(std::string info);
         
         Config  &get_config_file(void){return(_config_file);};
+        std::vector<Config> &get_vector_config(void) {return(_vector_Config);};
     private:
         Config  _config_file;
         std::string _path_file;

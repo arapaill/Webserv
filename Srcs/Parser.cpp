@@ -106,10 +106,10 @@ void    Parser::parse(void)
 	    get_info(_allblock.at(i));
         _vector_Config.push_back(_config_file);
     }
-    std::cout << _vector_Config.at(1).get_server_name() << std::endl;
+    std::cout << _vector_Config.at(0).get_server_name() << std::endl;
 
 }
-
+/*
 int main()
 {
 	Parser pars;
@@ -118,3 +118,4 @@ int main()
 	pars.parse();
 	return(0);
 }
+*/
