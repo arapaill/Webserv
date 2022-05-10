@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <fstream>
 
 #define PORT 8080
 
@@ -72,8 +73,21 @@ int main()
 		{
 			std::cout << "Nothing received\n";
 		}
-		char * hello = "Hello from the server"; // IMPORTANT
-		write(new_socket, hello, strlen(hello));
+
+		std::ifstream index("../HTML/index.html");
+		std::string file;
+		std::string line;
+
+		while (getline(index, line))
+			file += line + '\n';
+		index.close();
+
+		std::string s_response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: "; //<< file.size() << "\n\n" << file;
+		s_response += file.size();
+		s_response += "\n\n";
+		s_response += file;
+		char *		c_response = &s_response[0];
+		write(new_socket, c_response, strlen(c_response));
 
 		// 5. Close the socket
 		close(new_socket);

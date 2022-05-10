@@ -1,4 +1,4 @@
-#include "../Includes/Webserv.hpp"
+#include "Webserv.hpp"
 
 // Public
 Webserv::Webserv() {};
@@ -6,8 +6,8 @@ Webserv::~Webserv() {};
 
 void Webserv::run()
 {
+	std::cout << "Démarrage du serveur...\n";
 	init();
-	std::cout << "Serveur lancé.\n";
 	while (1)
 	{
 		for (int i = 0 ; i < _serversFD.size() ; i++)
@@ -15,15 +15,12 @@ void Webserv::run()
 	}
 }
 
-void Webserv::setParser( Parser & parser )
-{
-	_parser = parser;
-}
+void Webserv::setParser( Parser & parser ) { _parser = parser; };
 
 // Private
 void Webserv::init()
 {
-	_serversConfig = _parser.getConfigServers();
+	_serversConfig.push_back(_parser.get_config_file()); // Temporaire
 	initServers();
 }
 
@@ -50,7 +47,7 @@ int Webserv::initSocket( t_network network )
 		throw (std::logic_error("Error: socket() failed"));
 	}
 
-	std::memset((char *)&server_address, 0, sizeof(server_address));
+	memset((char *)&server_address, 0, sizeof(server_address));
 	server_address.sin_family = AF_INET;
 	server_address.sin_addr.s_addr = network.get_host().s_addr;
 	server_address.sin_port = htons(network.get_port());
@@ -64,7 +61,7 @@ int Webserv::initSocket( t_network network )
 	{
 		throw (std::logic_error("Error: listen() failed"));
 	}
-	std::cout << "Server listening...\n";
+	std::cout << "Serveur \"" << network.get_host_name() << "\" lancé...\n";
 	return (socket_listening);
 }
 
@@ -77,4 +74,12 @@ void Webserv::AcceptNewClient( int server )
 		throw (std::logic_error("Error: accept() failed"));
 	}
 	std::cout << "Client connected to server !\n";
+
+	// Temporaire
+	ResponseHTTP response;
+
+	response.requestFile("index.html");
+	std::string s_response = response.getResponseHTTP();
+	char * c_response = &s_response[0];
+	write(new_socket, c_response, strlen(c_response));
 }

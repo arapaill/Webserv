@@ -109,13 +109,3 @@ void    Parser::parse(void)
     std::cout << _vector_Config.at(1).get_server_name() << std::endl;
 
 }
-
-int main()
-{
-	Parser pars;
-    std::vector<Config> conffile;
-
-	pars.parse();
-	conffile.push_back(pars.get_config_file());
-	return(0);
-}
