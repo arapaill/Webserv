@@ -19,11 +19,14 @@ Parser&			Parser::operator=(const Parser &rhs)
 	return (*this);
 }
 
-void    Parser::init_vector_file(void)
+void    Parser::init_vector_string(void)
 {
 	std::ifstream file;
 	std::string string_file;
 	std::string concat_string_file;
+    std::vector<std::string> vector_string;
+    int count = 0;
+
 	file.open("../Configs/config.conf");
 	if(!file.is_open())
 	{
@@ -35,26 +38,37 @@ void    Parser::init_vector_file(void)
 		file >> string_file;
 		concat_string_file += string_file;
 		concat_string_file += " ";
+        if(concat_string_file.find('{')  != std::string::npos)
+            count++;
+        if(concat_string_file.find('}') != std::string::npos)
+            count--;
 		if(concat_string_file.find(';') != std::string::npos
 			|| concat_string_file.find('{') != std::string::npos
 			|| concat_string_file.find('}') != std::string::npos)
 		{
 			if(concat_string_file.find(';') != std::string::npos)
 				concat_string_file.resize(concat_string_file.size() - 2);
+            else
+                concat_string_file.resize(concat_string_file.size() - 1);
 			//std::cout << concat_string_file << std::endl;
-			_vector_file.push_back(concat_string_file);
+			vector_string.push_back(concat_string_file);
+            if(count == 0)
+            {
+                _allblock.push_back(vector_string);
+                vector_string.clear();
+            }
 			concat_string_file.clear();
 		}
 	}
 }
 
-void    Parser::get_info(void)
+void    Parser::get_info(std::vector<std::string> vector_string)
 {
 	std::string	info;
 
-	for(std::size_t i = 0; i != _vector_file.size() && _vector_file.at(i) != "}"; i++)
+	for(std::size_t i = 0; i != vector_string.size() && vector_string.at(i) != "}"; i++)
 	{
-		info = _vector_file.at(i);
+		info = vector_string.at(i);
        	//std::cout << "INFO:" << info << std::endl;
 		if(info.find("listen ") != std::string::npos)
 		{
@@ -72,27 +86,36 @@ void    Parser::get_info(void)
 
 void	Parser::init_config_file(void)
 {
-	//_config_file.set_root(NULL);
-	//_config_file.set_server_name(NULL);
-	//_config_file.set_index(NULL);
-	//_config_file.get_network().set_host(NULL);
+    std::string null = "NULL";
+
+	_config_file.set_root(null);
+	_config_file.set_server_name(null);
+	_config_file.set_index(null);
+	_config_file.get_network().get_host().s_addr = inet_addr("0.0.0.0");
 	_config_file.get_network().set_port(-1);
-	//_config_file.get_network().set_host_name(NULL);
+	_config_file.get_network().set_host_name(null);
 }
 
 void    Parser::parse(void)
 {
-	//init_config_file();
-	init_vector_file();
-	get_info();
+	
+	init_vector_string();
+    for(std::size_t i = 0; i < _allblock.size(); i++)
+    {
+        init_config_file();
+	    get_info(_allblock.at(i));
+        _vector_Config.push_back(_config_file);
+    }
+    std::cout << _vector_Config.at(1).get_server_name() << std::endl;
 
 }
 
 int main()
 {
 	Parser pars;
+    std::vector<Config> conffile;
 
 	pars.parse();
-	//std::cout << pars.get_config_file().get_network().get_port() << std::endl;
+	conffile.push_back(pars.get_config_file());
 	return(0);
 }

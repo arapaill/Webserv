@@ -10,6 +10,11 @@ class Config
 		Config(Config const &other) {*this = other;};
 		~Config() {};
 
+        void    clear(void)
+        {
+            
+        }
+
 		Config & operator=(const Config & rhs)
 		{
 			_network = rhs._network;
