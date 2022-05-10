@@ -30,7 +30,7 @@ void    Parser::init_vector_string(void)
 	file.open("../Configs/config.conf");
 	if(!file.is_open())
 	{
-		std::cout << "Cannot open config file";
+		std::cout << "Cannot open config file\n";
 		exit(0);
 	}
 	while(file)
@@ -108,4 +108,13 @@ void    Parser::parse(void)
     }
     std::cout << _vector_Config.at(1).get_server_name() << std::endl;
 
+}
+
+int main()
+{
+	Parser pars;
+    std::vector<Config> conffile;
+
+	pars.parse();
+	return(0);
 }
