@@ -26,6 +26,14 @@ bool isNumber(const std::string& str)
     return true;
 }
 
+bool isText(const std::string& str)
+{
+    for (char const &c : str) {
+        if (std::isalpha(c) == 0) return false;
+    }
+    return true;
+}
+
 void    Parser::is_listen(std::string info)
 {
 	std::vector<std::string> cmd;
@@ -42,10 +50,10 @@ void    Parser::is_listen(std::string info)
 	{
 		tmp = cmd.at(i);
         
-       // std::cout << "TMP:" << tmp << std::endl;
-		if(isNumber(tmp))
+       //std::cout << "TMP:" << tmp << std::endl;
+		if(isNumber(tmp) && _config_file.get_network().get_port() == -1)
         {
-			_config_file.get_network().get_port() = atoi(tmp.c_str());
+			_config_file.get_network().set_port(atoi(tmp.c_str()));
         }
         if((tmp.find(":")) == std::string::npos &&
         ( tmp.find(".") != std::string::npos || tmp == "localhost"))
@@ -58,12 +66,14 @@ void    Parser::is_listen(std::string info)
             _config_file.get_network().get_host().s_addr = inet_addr(host.c_str());
            // std::cout << _config_file.get_network().get_host().s_addr << std::endl;
         }
+        if(isText(tmp) && tmp != "listen")
+        {
+           // std::cout << "TMP:" << tmp << std::endl;
+            _config_file.get_network().set_host_name(tmp);
+            //std::cout << "host_name: " << _config_file.get_network().get_host_name() << std::endl;
+        }
         tmp.clear();
 	}
-    if(_config_file.get_network().get_port() == -1)
-			_config_file.get_network().get_port() = 80;
-	if(!_config_file.get_network().get_host().s_addr)
-		_config_file.get_network().get_host().s_addr = inet_addr("0.0.0.0");
 }
 
 void    Parser::is_server_name(std::string info)

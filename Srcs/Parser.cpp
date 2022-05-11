@@ -100,7 +100,6 @@ void	Parser::init_config_file(void)
 
 void    Parser::parse(void)
 {
-	
 	init_vector_string();
 	for(std::size_t i = 0; i < _allblock.size(); i++)
 	{
@@ -108,8 +107,7 @@ void    Parser::parse(void)
 		get_info(_allblock.at(i));
 		_vector_Config.push_back(_config_file);
 	}
-   // std::cout << _vector_Config.at(0).get_server_name() << std::endl;
-
+//    std::cout << _vector_Config.at(0).get_server_name() << std::endl;
 }
 
 /*
