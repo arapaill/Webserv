@@ -20,7 +20,7 @@ void Webserv::setParser( Parser & parser ) { _parser = parser; };
 // Private
 void Webserv::init()
 {
-	_serversConfig.push_back(_parser.get_config_file()); // Temporaire
+	_serversConfig = _parser.get_vector_config();
 	initServers();
 }
 
@@ -29,6 +29,7 @@ void Webserv::initServers()
 	for (configVector::iterator it = _serversConfig.begin(); it != _serversConfig.end(); it++)
 	{
 		t_network network = it->get_network();
+		std::cout << "Lancement du serveur \"" << it->get_server_name() << "\"...\n";
 		_serversFD.push_back(initSocket(network));
 	}
 }
@@ -42,6 +43,7 @@ int Webserv::initSocket( t_network network )
 	int 				socket_listening;
 	struct sockaddr_in 	server_address;
 
+	fcntl(socket_listening, F_SETFL, O_NONBLOCK);
 	if ((socket_listening = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
 		throw (std::logic_error("Error: socket() failed"));
@@ -61,7 +63,6 @@ int Webserv::initSocket( t_network network )
 	{
 		throw (std::logic_error("Error: listen() failed"));
 	}
-	std::cout << "Serveur \"" << network.get_host_name() << "\" lancé...\n";
 	return (socket_listening);
 }
 
@@ -75,10 +76,24 @@ void Webserv::AcceptNewClient( int server )
 	}
 	std::cout << "Client connected to server !\n";
 
+
+	char buffer[1024] = {0};
+	std::string line;
+
+	int valread = read(new_socket, buffer, 1024);
+
+	std::string requested_file = &buffer[4];
+	requested_file = requested_file.substr(0, requested_file.find(' '));
+
+	std::cout << "Requested File : \"" << requested_file << "\"\n";
+
 	// Temporaire
 	ResponseHTTP response;
 
-	response.requestFile("index.html");
+	if (requested_file.size() == 1)
+		response.requestFile("index.html");
+	else
+		response.requestFile(requested_file + ".html");
 	std::string s_response = response.getResponseHTTP();
 	char * c_response = &s_response[0];
 	write(new_socket, c_response, strlen(c_response));

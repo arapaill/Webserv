@@ -33,16 +33,22 @@ void ResponseHTTP::createHeader()
 void ResponseHTTP::openFile(std::string requested_filename)
 {
 	std::ifstream requested_file("../HTML/" + requested_filename);
+	std::ifstream error_file("../HTML/404.html");
 	std::string r_file;
 	std::string line;
 
-	if (requested_file.is_open())
+	if (!requested_file.is_open())
+	{
+		while (getline(error_file, line))
+			r_file += line + '\n';
+		error_file.close();
+	}
+	else
 	{
 		while (getline(requested_file, line))
 			r_file += line + '\n';
 		requested_file.close();
 	}
-	else std::cout << "Unable to open " << requested_filename << std::endl;
 
 	_body = r_file;
 }

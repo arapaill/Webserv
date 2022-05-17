@@ -13,6 +13,8 @@
 # include <arpa/inet.h>
 # include <fstream>
 # include <errno.h>
+# include <sstream>
+# include <fcntl.h>
 
 # include "../../Includes/Parser.hpp"
 # include "../../Includes/Config.hpp"
