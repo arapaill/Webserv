@@ -40,21 +40,21 @@ void    Parser::init_vector_string(void)
 		file >> string_file;
 		concat_string_file += string_file;
 		concat_string_file += " ";
-		if(concat_string_file.find('{')  != std::string::npos)
+		if (concat_string_file.find('{')  != std::string::npos)
 			count++;
-		if(concat_string_file.find('}') != std::string::npos)
+		if (concat_string_file.find('}') != std::string::npos)
 			count--;
-		if(concat_string_file.find(';') != std::string::npos
+		if (concat_string_file.find(';') != std::string::npos
 			|| concat_string_file.find('{') != std::string::npos
 			|| concat_string_file.find('}') != std::string::npos)
 		{
-			if(concat_string_file.find(';') != std::string::npos)
+			if (concat_string_file.find(';') != std::string::npos)
 				concat_string_file.resize(concat_string_file.size() - 2);
 			else
 				concat_string_file.resize(concat_string_file.size() - 1);
 			//std::cout << concat_string_file << std::endl;
 			vector_string.push_back(concat_string_file);
-			if(count == 0)
+			if (count == 0)
 			{
 				_allblock.push_back(vector_string);
 				vector_string.clear();
@@ -72,16 +72,16 @@ void    Parser::get_info(std::vector<std::string> vector_string)
 	{
 		info = vector_string.at(i);
 	   	//std::cout << "INFO:" << info << std::endl;
-		if(info.find("listen ") != std::string::npos)
+		if (info.find("listen ") != std::string::npos)
 		{
 			//std::cout << "in listen \n";
 			is_listen(info);
 		}
 		else if (info.find("server_name ") != std::string::npos)
 			is_server_name(info);
-		else if(info.find("root ") != std::string::npos)
+		else if (info.find("root ") != std::string::npos)
 			is_root(info);
-		else if(info.find("index ") != std::string::npos)
+		else if (info.find("index ") != std::string::npos)
 			is_index(info);
 	}
 }
