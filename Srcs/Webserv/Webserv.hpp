@@ -15,6 +15,7 @@
 # include <errno.h>
 # include <sstream>
 # include <fcntl.h>
+# include <sys/epoll.h>
 
 # include "../../Includes/Parser.hpp"
 # include "../../Includes/Config.hpp"
@@ -24,6 +25,8 @@
 
 
 # define MAX_CLIENTS 10 // À changer de place
+# define MAX_EVENTS 10 // À changer de place
+
 
 class Webserv
 {
@@ -37,15 +40,22 @@ class Webserv
 
 		void	run();
 		void	setParser( Parser & parser );
+
 	private:
-		Parser			_parser;
-		configVector 	_serversConfig;
-		serverFDVector	_serversFD;
+		Parser				_parser;
+		configVector 		_serversConfig;
+		serverFDVector		_serversFD;
+		int					_epollfd;
+		struct epoll_event 	_ev, _events[MAX_EVENTS];
+
 
 		void	init();
 		void	initServers();
 		int		initSocket( t_network network );
-		void	AcceptNewClient( int server );
+		void	handleRead( int clientFD );
+		void	acceptNewClient( int serverFD );
+		bool	fd_is_server( int ready_fd );
+
 };
 
 
