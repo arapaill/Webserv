@@ -1,21 +1,7 @@
 #ifndef RESPONSEHTTP_HPP
 # define RESPONSEHTTP_HPP
 
-# include <string>
-
-# include <sys/types.h>
-# include <sys/socket.h>
-# include <cstring>
-# include <iostream> // Temporaire
-# include <string>
-# include <unistd.h>
-# include <stdio.h>
-# include <stdlib.h>
-# include <netinet/in.h>
-# include <arpa/inet.h>
-# include <fstream>
-# include <errno.h>
-# include <sstream>
+# include "../../Includes/headers.hpp"
 
 class ResponseHTTP
 {

@@ -36,7 +36,9 @@ void Webserv::run()
 			std::cout << "\r" << wait[(n++ % 6)] << " waiting for connection" << std::flush;
 		}
 	}
+	closeServers();
 }
+
 
 void Webserv::setParser( Parser & parser ) { _parser = parser; };
 
@@ -68,6 +70,14 @@ void Webserv::initServers()
 		std::cout << "Lancement du serveur \"" << it->get_server_name() << "\"...\n";
 		_serversFD.push_back(initSocket(network));
 	}
+}
+
+void Webserv::closeServers()
+{
+	std::cout << "Fermeture des serveurs...\n";
+	for (serverFDVector::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
+		close(*it);
+	close(_epollfd);
 }
 
 /* S'occupe de créer le socket avec l'addresse IP 
