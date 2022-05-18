@@ -1,5 +1,6 @@
 #include "../Includes/Parser.hpp"
 #include <algorithm>
+#include "../Includes/headers.hpp"
 
 std::vector<std::string> split(const std::string& s, char seperator)
 {
@@ -41,9 +42,9 @@ void    Parser::is_listen(std::string info)
     std::string	host;
 
 	cmd = split(info, ' ');
-    if(cmd.size() < 2)
+    if(cmd.size() < 3)
     {
-        std::cout << "not enough directives for network\n";
+        std::cout << RED << "not enough directives for network\n" << RESET;
         exit(1);
     }
 	for(std::size_t i = 0; i != cmd.size(); i++)
@@ -132,4 +133,42 @@ void    Parser::is_index(std::string info)
         exit(1);
     }
     _config_file.set_index(cmd.at(1));
+}
+
+void    Parser::is_autoindex(std::string info)
+{
+    std::vector<std::string> cmd;
+    cmd = split(info, ' ');
+
+    if(cmd.size() < 2)
+    {
+        std::cout << "not enough directives for autoindex\n";
+        exit(1);
+    }
+    if(cmd.size() > 2)
+    {
+        std::cout << "too much directives for autoindex\n";
+        exit(1);
+    }
+    if(cmd.at(1) == "On")
+        _config_file.set_autoindex(true);
+    else
+        _config_file.set_autoindex(false);
+}
+
+void    Parser::is_client_max_body_size(std::string info)
+{
+    std::vector<std::string> cmd;
+    cmd = split(info, ' ');
+     if(cmd.size() < 2)
+    {
+        std::cout << "not enough directives for index\n";
+        exit(1);
+    }
+    if(cmd.size() > 2)
+    {
+        std::cout << "too much directives for index\n";
+        exit(1);
+    }
+    _config_file.set_client_max_body_size(atoi(cmd.at(1).c_str()));
 }

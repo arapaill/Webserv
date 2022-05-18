@@ -83,6 +83,14 @@ void    Parser::get_info(std::vector<std::string> vector_string)
 			is_root(info);
 		else if (info.find("index ") != std::string::npos)
 			is_index(info);
+        else if (info.find("autoindex ") != std::string::npos)
+			is_autoindex(info);
+       /* else if (info.find("error_page ") != std::string::npos)
+			is_error_page(info);*/
+        else if (info.find("client_max_body_size ") != std::string::npos)
+			is_client_max_body_size(info);
+        /*else if (info.find("fastcgi_param ") != std::string::npos)
+			is_fastcgi_param(info);*/
 	}
 }
 
