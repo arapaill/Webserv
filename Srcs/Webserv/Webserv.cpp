@@ -1,12 +1,15 @@
 #include "Webserv.hpp"
 
 // Public
+
+volatile bool g_run = true;
+
 Webserv::Webserv() {};
 Webserv::~Webserv() {};
 
 void Webserv::run()
 {
-	std::cout << "Démarrage du serveur...\n";
+	std::cout << YELLOW << "Démarrage...\n" << RESET;
 	
 	int n = 0;
 	std::string  wait[] = {"⠋", "⠙", "⠸", "⠴", "⠦", "⠇"};
@@ -15,7 +18,7 @@ void Webserv::run()
 
 	init();
 
-	while (1)
+	while (g_run)
 	{
 		errno = 0;
 
@@ -23,7 +26,7 @@ void Webserv::run()
 		if (errno == EINVAL || errno == EFAULT || errno == EBADFD)
 			std::cerr << "Error: epoll_wait() failed: " << strerror(errno) << '\n';
 		else if (errno == EINTR) // epoll interrupted by a signal (CTRL+C)
-			break ;
+			g_run = false;
 		for (int i = 0 ; i < nfds ; i++)
 		{
 			if (_events[i].events & EPOLLIN && fd_is_server(_events[i].data.fd))
@@ -33,7 +36,7 @@ void Webserv::run()
 		}
 		if (nfds == 0)
 		{
-			std::cout << "\r" << wait[(n++ % 6)] << " waiting for connection" << std::flush;
+			std::cout << YELLOW << "\r" << wait[(n++ % 6)] << " waiting for connection" << RESET << std::flush;
 		}
 	}
 	closeServers();
@@ -67,14 +70,15 @@ void Webserv::initServers()
 	for (configVector::iterator it = _serversConfig.begin(); it != _serversConfig.end(); it++)
 	{
 		t_network network = it->get_network();
-		std::cout << "Lancement du serveur \"" << it->get_server_name() << "\"...\n";
+		std::cout << YELLOW << "Launching server \"" << it->get_server_name() << "\"...\n" << RESET;
 		_serversFD.push_back(initSocket(network));
+		std::cout << GREEN << "Server successfuly launched.\n" << RESET;
 	}
 }
 
 void Webserv::closeServers()
 {
-	std::cout << "Fermeture des serveurs...\n";
+	std::cout << YELLOW << "\nShutting down server...\n" << RESET;
 	for (serverFDVector::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
 		close(*it);
 	close(_epollfd);
@@ -138,31 +142,41 @@ void Webserv::acceptNewClient( int serverFD )
 
 void Webserv::handleRead( int clientFD )
 {
-	char buffer[1024] = {0};
+	char request[BUFFER_SIZE + 1] = {0};
 	std::string line;
 
-	int valread = read(clientFD, buffer, 1024);
+	ssize_t ret = recv(clientFD, request, BUFFER_SIZE, 0);
 
-	//std::cout << buffer;
-
-	std::string requested_file = &buffer[4];
-
-	requested_file = requested_file.substr(0, requested_file.find(' '));
-
-	std::cout << "\nClient requested file \"" << requested_file << "\"";
-
-	ResponseHTTP response;
-
-	if (requested_file.size() == 1)
-		response.requestFile("index.html");
+	if (ret == -1)
+	{
+		std::cerr << "Error: recv() failed\n";
+		return ;
+	}
+	else if (ret == 0)
+		return ;
 	else
-		response.requestFile(requested_file + ".html");
-	std::string s_response = response.getResponseHTTP();
-	char * c_response = &s_response[0];
-	write(clientFD, c_response, strlen(c_response));
-	_ev.events = EPOLLOUT;
-	_ev.data.fd = clientFD;
-	epoll_ctl(_epollfd, EPOLL_CTL_MOD, clientFD, &_ev);
+	{
+		//std::cout << buffer;
+
+		std::string requested_file = &request[4];
+
+		requested_file = requested_file.substr(0, requested_file.find(' '));
+
+		std::cout << GREEN << "\nClient requested file \"" << requested_file << "\"" << RESET << std::flush;
+
+		ResponseHTTP response;
+
+		if (requested_file.size() == 1)
+			response.requestFile("index.html");
+		else
+			response.requestFile(requested_file + ".html");
+		std::string s_response = response.getResponseHTTP();
+		char * c_response = &s_response[0];
+		write(clientFD, c_response, strlen(c_response));
+		_ev.events = EPOLLOUT;
+		_ev.data.fd = clientFD;
+		epoll_ctl(_epollfd, EPOLL_CTL_MOD, clientFD, &_ev);
+	}
 }
 
 bool	Webserv::fd_is_server(int ready_fd)
