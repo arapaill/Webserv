@@ -79,7 +79,6 @@ void    Parser::is_listen(std::string info)
 void    Parser::is_server_name(std::string info)
 {
     std::vector<std::string> cmd;
-    std::string tmp;
     cmd = split(info, ' ');
 
     if(cmd.size() < 2)
