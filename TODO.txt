@@ -41,6 +41,8 @@
 
 • Ajout Checker du .conf
 
+• commentaire dans le .conf
+
 • location
 
 • try_files
