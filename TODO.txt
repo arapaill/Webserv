@@ -1,5 +1,4 @@
 
-
 • Votre programme doit prendre un fichier de configuration en argument ou utiliser
     un chemin par défaut.
 
@@ -40,4 +39,6 @@
             doit être enregistré.
 
 
+• Complèter la méthode GET (Code Status, directives...)
 
+• Gérer les méthodes POST et DELETE
