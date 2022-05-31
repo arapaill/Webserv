@@ -10,7 +10,6 @@ std::vector<std::string> split(const std::string& s, char seperator)
     while((pos = s.find(seperator, pos)) != std::string::npos)
     {
         std::string substring( s.substr(prev_pos, pos-prev_pos) );
-
         output.push_back(substring);
 
         prev_pos = ++pos;
@@ -93,8 +92,7 @@ void    Parser::is_server_name(std::string info)
         std::cout << "too much directives for server_name\n";
         exit(1);
     }
-    tmp = cmd.at(1) + ' ' + cmd.at(2);
-    _config_file.set_server_name(tmp);
+    _config_file.set_server_name(info);
 }
 
 void    Parser::is_root(std::string info)
