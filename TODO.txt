@@ -39,6 +39,16 @@
             doit être enregistré.
 
 
+• Ajout Checker du .conf
+
+• location
+
+• try_files
+
+• config par defaut
+
+• Checker config
+
 • Complèter la méthode GET (Code Status, directives...)
 
 • Gérer les méthodes POST et DELETE
