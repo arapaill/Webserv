@@ -1,9 +1,18 @@
 CPP = c++
-CPPFLAGS = -std=c++98
+CPPFLAGS = 
 
 NAME = webserv
-CLIENT = Srcs/TEST_client.cpp
-SERVER = Srcs/TEST_server.cpp
+SRCS = Srcs/main.cpp Srcs/Webserv/Webserv.cpp Srcs/ResponseHTTP/ResponseHTTP.cpp Srcs/Parser/Parser.cpp Srcs/Parser/Is_key_word.cpp
 
-all: 
-		c++ Srcs/main.cpp Srcs/Webserv/Webserv.cpp Srcs/ResponseHTTP/ResponseHTTP.cpp Srcs/Parser/Parser.cpp Srcs/Parser/Is_key_word.cpp && ./a.out
+
+all: 		$(NAME)
+
+$(NAME): 	$(SRCS)
+			$(CPP) $(CPPFLAGS) -o $@ $^
+clean:
+			rm -f $(NAME)
+
+re: 		clean all
+
+exec: 		all
+			./webserv
