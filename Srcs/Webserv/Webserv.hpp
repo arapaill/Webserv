@@ -10,12 +10,12 @@ class Webserv
 		~Webserv();
 
 		void	run();
-		void	setParser( Parser & parser );
+		void	setConfig( std::vector<Config> & configs );
 
 	private:
 		Parser				_parser;
-		configVector 		_serversConfig;
-		serverFDVector		_serversFD;
+		std::vector<Config>	_serversConfig;
+		std::vector<int>	_serversFD;
 		int					_epollfd;
 		struct epoll_event 	_ev, _events[MAX_EVENTS];
 
@@ -23,7 +23,7 @@ class Webserv
 		void	init();
 		void	launchServers();
 		void 	closeServers();
-		int		initSocket( t_network network );
+		int		initSocket( Config serverConfig );
 		void	handleRead( int clientFD );
 		void	acceptNewClient( int serverFD );
 		bool	isFDServer( int readyFD );

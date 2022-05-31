@@ -17,6 +17,6 @@ int main()
 
 	signal(SIGINT, signal_handler);
 	parser.parse();
-	server.setParser(parser);
+	server.setConfig(parser.get_vector_config());
 	server.run();
 }

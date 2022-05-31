@@ -1,7 +1,6 @@
 #include "Webserv.hpp"
 
 // Public
-
 volatile bool g_run = true;
 
 Webserv::Webserv() {};
@@ -41,12 +40,11 @@ void Webserv::run()
 }
 
 
-void Webserv::setParser( Parser & parser ) { _parser = parser; };
+void Webserv::setConfig( std::vector<Config> & configs ) { _serversConfig = configs; };
 
 // Private
 void Webserv::init()
 {
-	_serversConfig = _parser.get_vector_config();
 	_epollfd = epoll_create1(0);
 
 	if (_epollfd == -1)
@@ -55,7 +53,7 @@ void Webserv::init()
 	launchServers();
 
 	std::memset((struct epoll_event *)&_ev, 0, sizeof(_ev));
-	for (serverFDVector::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
+	for (std::vector<int>::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
 	{
 		_ev.data.fd = *it;
 		_ev.events = EPOLLIN;
@@ -65,11 +63,10 @@ void Webserv::init()
 
 void Webserv::launchServers()
 {
-	for (configVector::iterator it = _serversConfig.begin(); it != _serversConfig.end(); it++)
+	for (std::vector<Config>::iterator it = _serversConfig.begin(); it != _serversConfig.end(); it++)
 	{
-		t_network network = it->get_network();
 		std::cout << YELLOW << "Launching server \"" << it->get_server_name() << "\"...\n" << RESET;
-		_serversFD.push_back(initSocket(network));
+		_serversFD.push_back(initSocket(*it));
 		std::cout << GREEN << "Server successfuly launched.\n" << RESET;
 	}
 }
@@ -77,7 +74,7 @@ void Webserv::launchServers()
 void Webserv::closeServers()
 {
 	std::cout << YELLOW << "\nShutting down server...\n" << RESET;
-	for (serverFDVector::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
+	for (std::vector<int>::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
 		close(*it);
 	close(_epollfd);
 }
@@ -86,7 +83,7 @@ void Webserv::closeServers()
 ** ainsi que le port renseigné dans network.
 ** Le socket est réutilisable et non-bloquant.
 */
-int Webserv::initSocket( t_network network )
+int Webserv::initSocket( Config serverConfig )
 {
 	int 				socket_listening;
 	struct sockaddr_in 	server_address;
@@ -99,8 +96,8 @@ int Webserv::initSocket( t_network network )
 
 	memset((char *)&server_address, 0, sizeof(server_address));
 	server_address.sin_family = AF_INET;
-	server_address.sin_addr.s_addr = network.get_host().s_addr;
-	server_address.sin_port = htons(network.get_port());
+	server_address.sin_addr.s_addr = serverConfig.get_host().s_addr;
+	server_address.sin_port = htons(serverConfig.get_port());
 
 	if (bind(socket_listening, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
 	{
@@ -182,7 +179,7 @@ void Webserv::handleRead( int clientFD )
 
 bool	Webserv::isFDServer(int readyFD)
 {
-	for (serverFDVector::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
+	for (std::vector<int>::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
 		if (*it == readyFD)
 			return (true);
 	return (false);

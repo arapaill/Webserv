@@ -42,7 +42,4 @@
 # define MAX_EVENTS 10
 # define BUFFER_SIZE 1024
 
-typedef std::vector<Config>	configVector;
-typedef std::vector<int>	serverFDVector;
-
 #endif
