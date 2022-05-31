@@ -16,7 +16,7 @@ class Webserv
 		Parser				_parser;
 		std::vector<Config>	_serversConfig;
 		std::vector<int>	_serversFD;
-		int					_epollfd;
+		int					_epollFD;
 		struct epoll_event 	_ev, _events[MAX_EVENTS];
 
 

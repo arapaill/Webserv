@@ -20,7 +20,7 @@ void Webserv::run()
 	{
 		errno = 0;
 
-		nfds = epoll_wait(_epollfd, _events, MAX_EVENTS, timeout);
+		nfds = epoll_wait(_epollFD, _events, MAX_EVENTS, timeout);
 		if (errno == EINVAL || errno == EFAULT || errno == EBADFD)
 			std::cerr << RED << "Error: epoll_wait() failed: " << strerror(errno) << RESET << std::endl;
 		else if (errno == EINTR) // epoll interrupted by a signal (CTRL+C)
@@ -45,9 +45,9 @@ void Webserv::setConfig( std::vector<Config> & configs ) { _serversConfig = conf
 // Private
 void Webserv::init()
 {
-	_epollfd = epoll_create1(0);
+	_epollFD = epoll_create1(0);
 
-	if (_epollfd == -1)
+	if (_epollFD == -1)
 		throw (std::runtime_error("Error: epoll_create1() failed"));
 
 	launchServers();
@@ -57,7 +57,7 @@ void Webserv::init()
 	{
 		_ev.data.fd = *it;
 		_ev.events = EPOLLIN;
-		epoll_ctl(_epollfd, EPOLL_CTL_ADD, *it, &_ev);
+		epoll_ctl(_epollFD, EPOLL_CTL_ADD, *it, &_ev);
 	}
 }
 
@@ -76,7 +76,7 @@ void Webserv::closeServers()
 	std::cout << YELLOW << "\nShutting down server...\n" << RESET;
 	for (std::vector<int>::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
 		close(*it);
-	close(_epollfd);
+	close(_epollFD);
 }
 
 /* S'occupe de créer le socket avec l'addresse IP 
@@ -85,52 +85,52 @@ void Webserv::closeServers()
 */
 int Webserv::initSocket( Config serverConfig )
 {
-	int 				socket_listening;
-	struct sockaddr_in 	server_address;
+	int 				socketListening;
+	struct sockaddr_in 	serverAddress;
 
-	fcntl(socket_listening, F_SETFL, O_NONBLOCK);
-	if ((socket_listening = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	fcntl(socketListening, F_SETFL, O_NONBLOCK);
+	if ((socketListening = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
 		throw (std::logic_error("Error: socket() failed"));
 	}
 
-	memset((char *)&server_address, 0, sizeof(server_address));
-	server_address.sin_family = AF_INET;
-	server_address.sin_addr.s_addr = serverConfig.get_host().s_addr;
-	server_address.sin_port = htons(serverConfig.get_port());
+	memset((char *)&serverAddress, 0, sizeof(serverAddress));
+	serverAddress.sin_family = AF_INET;
+	serverAddress.sin_addr.s_addr = serverConfig.get_host().s_addr;
+	serverAddress.sin_port = htons(serverConfig.get_port());
 
-	if (bind(socket_listening, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+	if (bind(socketListening, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)
 	{
 		throw (std::logic_error("Error: bind() failed"));
 	}
 	
-	if (listen(socket_listening, MAX_CLIENTS) < 0)
+	if (listen(socketListening, MAX_CLIENTS) < 0)
 	{
 		throw (std::logic_error("Error: listen() failed"));
 	}
 
-	return (socket_listening);
+	return (socketListening);
 }
 
 void Webserv::acceptNewClient( int serverFD )
 {
-	int new_socket;
+	int newSocket;
 
-	if ((new_socket = accept(serverFD, NULL, NULL)) < 0)
+	if ((newSocket = accept(serverFD, NULL, NULL)) < 0)
 	{
 		if (errno != EWOULDBLOCK)
 			 std::cerr << RED << "Error: accept() failed" << RESET << std::endl;
 	}
 
-	if (fcntl(new_socket, F_SETFL, O_NONBLOCK) < 0)
+	if (fcntl(newSocket, F_SETFL, O_NONBLOCK) < 0)
 	{
 		std::cerr << RED << "Error: fcntl() failed" << RESET << std::endl;
 		return ;
 	}
 
-	_ev.data.fd = new_socket;
+	_ev.data.fd = newSocket;
 	_ev.events = EPOLLIN;
-	epoll_ctl(_epollfd, EPOLL_CTL_ADD, new_socket, &_ev);
+	epoll_ctl(_epollFD, EPOLL_CTL_ADD, newSocket, &_ev);
 /* 
 	client.setSocket(new_socket);
 	_clients[new_socket] = client; */
@@ -156,24 +156,24 @@ void Webserv::handleRead( int clientFD )
 	{
 		//std::cout << buffer;
 
-		std::string requested_file = &request[4];
+		std::string requestedFile = &request[4];
 
-		requested_file = requested_file.substr(0, requested_file.find(' '));
+		requestedFile = requestedFile.substr(0, requestedFile.find(' '));
 
-		std::cout << GREEN << "\nClient requested file \"" << requested_file << "\"" << RESET << std::flush;
+		std::cout << GREEN << "\nClient requested file \"" << requestedFile << "\"" << RESET << std::flush;
 
 		ResponseHTTP response;
 
-		if (requested_file.size() == 1)
+		if (requestedFile.size() == 1)
 			response.requestFile("index.html");
 		else
-			response.requestFile(requested_file + ".html");
+			response.requestFile(requestedFile + ".html");
 		std::string s_response = response.getResponseHTTP();
 		char * c_response = &s_response[0];
 		write(clientFD, c_response, strlen(c_response));
 		_ev.events = EPOLLOUT;
 		_ev.data.fd = clientFD;
-		epoll_ctl(_epollfd, EPOLL_CTL_MOD, clientFD, &_ev);
+		epoll_ctl(_epollFD, EPOLL_CTL_MOD, clientFD, &_ev);
 	}
 }
 
