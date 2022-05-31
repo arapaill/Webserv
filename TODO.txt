@@ -1,0 +1,43 @@
+
+
+• Votre programme doit prendre un fichier de configuration en argument ou utiliser
+    un chemin par défaut.
+
+• Il doit être non bloquant et n’utiliser qu’un seul poll() (ou équivalent) pour
+    toutes les opérations entrées/sorties entre le client et le serveur (listen inclus).
+
+• Vos codes d’état de réponse HTTP doivent être exacts.
+
+• Le client devrait pouvoir télécharger des fichiers.
+
+• Stress testez votre serveur, il doit rester disponible à tout prix.
+
+• Le premier serveur pour un host:port sera le serveur par défaut pour cet host:port
+    (ce qui signifie qu’il répondra à toutes les requêtes qui n’appartiennent pas à un
+    autre serveur).
+
+• Setup des pages d’erreur par défaut.
+
+• Limiter la taille du body des clients.
+
+• Setup des routes avec une ou plusieurs des règles/configurations suivantes (les
+    routes n’utiliseront pas de regexp) :
+        ◦ Définir une liste de méthodes HTTP acceptées pour la route.
+
+        ◦ Définir une redirection HTTP.
+
+        ◦ Définir un répertoire ou un fichier à partir duquel le fichier doit être recherché
+            (par exemple si l’url /kapouet est rootée sur /tmp/www, l’url /kapouet/pouic/toto/pouet
+            est /tmp/www/pouic/toto/pouet).
+
+        ◦ Activer ou désactiver le listing des répertoires.
+
+        ◦ Set un fichier par défaut comme réponse si la requête est un répertoire.;
+
+        ◦ Exécuter CGI en fonction de certaines extensions de fichier (par exemple .php).
+
+        ◦ Rendre la route capable d’accepter les fichiers téléchargés et configurer où cela
+            doit être enregistré.
+
+
+
