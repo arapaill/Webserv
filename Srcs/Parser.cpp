@@ -71,6 +71,8 @@ void    Parser::get_info(std::vector<std::string> vector_string)
 	for(std::size_t i = 0; i != vector_string.size() && vector_string.at(i) != "}"; i++)
 	{
 		info = vector_string.at(i);
+		if (info.find("#") != std::string::npos)
+			info.erase(info.find("#"));
 	   	//std::cout << "INFO:" << info << std::endl;
 		if (info.find("listen ") != std::string::npos)
 		{
@@ -83,13 +85,13 @@ void    Parser::get_info(std::vector<std::string> vector_string)
 			is_root(info);
 		else if (info.find("index ") != std::string::npos)
 			is_index(info);
-        else if (info.find("autoindex ") != std::string::npos)
+		else if (info.find("autoindex ") != std::string::npos)
 			is_autoindex(info);
-       /* else if (info.find("error_page ") != std::string::npos)
+	   /* else if (info.find("error_page ") != std::string::npos)
 			is_error_page(info);*/
-        else if (info.find("client_max_body_size ") != std::string::npos)
+		else if (info.find("client_max_body_size ") != std::string::npos)
 			is_client_max_body_size(info);
-        /*else if (info.find("fastcgi_param ") != std::string::npos)
+		/*else if (info.find("fastcgi_param ") != std::string::npos)
 			is_fastcgi_param(info);*/
 	}
 }

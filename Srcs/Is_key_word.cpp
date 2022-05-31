@@ -79,6 +79,7 @@ void    Parser::is_listen(std::string info)
 void    Parser::is_server_name(std::string info)
 {
     std::vector<std::string> cmd;
+    std::string tmp;
     cmd = split(info, ' ');
 
     if(cmd.size() < 2)
@@ -91,7 +92,13 @@ void    Parser::is_server_name(std::string info)
         std::cout << "too much directives for server_name\n";
         exit(1);
     }
-    _config_file.set_server_name(info);
+    if (cmd.size() == 3)
+        tmp =  cmd.at(1) + " " + cmd.at(2);
+    else
+        tmp = cmd.at(1);
+    
+    _config_file.set_server_name(tmp);
+   
 }
 
 void    Parser::is_root(std::string info)
