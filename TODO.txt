@@ -40,4 +40,13 @@
             doit être enregistré.
 
 
+- ajout Checker du .conf
+
+- location
+
+- try_files
+
+- config par defaut
+
+- Checker config
 
