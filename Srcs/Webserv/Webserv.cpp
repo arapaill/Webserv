@@ -146,6 +146,8 @@ void Webserv::handleRead( int clientFD )
 
 	ssize_t ret = recv(clientFD, request, BUFFER_SIZE, 0);
 
+	std::cout << "\n" << request;
+
 	if (ret == -1)
 	{
 		std::cerr << "Error: recv() failed\n";
