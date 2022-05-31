@@ -7,48 +7,75 @@ static std::string	ft_itoa(int nb)
 }
 
 // Public
-ResponseHTTP::ResponseHTTP() {};
+ResponseHTTP::ResponseHTTP() 
+{
+	initDirectives();
+}
 
 ResponseHTTP::~ResponseHTTP() {};
 
 void ResponseHTTP::requestFile(std::string requested_filename)
 {
 	openFile(requested_filename);
-	createHeader();
+	createStatusLine();
+	createHeaders();
 }
 
-std::string ResponseHTTP::getResponseHTTP() { return (_header + _body); }
+std::string ResponseHTTP::getResponseHTTP() { return (_statusLine + _headers + _body); }
 
 // Private
-void ResponseHTTP::createHeader()
+void ResponseHTTP::initDirectives()
 {
-	_header = "HTTP/1.1 ";
-	_header += "200 OK\n"; // STATUS CODE
-	_header += "Content-Type: text/html\n"; // Content-Type
-	_header += "Content-Length: "; // Content-Length
-	_header += ft_itoa(_body.size());
-	_header += "\n\n";
+	_directives["Allow"] = "";
+	_directives["Content-Language"] = "";
+	_directives["Content-Length"] = "";
+	_directives["Content-Location"] = "";
+	_directives["Content-Type"] = "";
+	_directives["Date"] = "";
+	_directives["Last-Modified"] = "";
+	_directives["Connection"] = "";
+	_directives["Location"] = "";
+	_directives["Retry-After"] = "";
+	_directives["Server"] = "Webserv";
+	_directives["Transfer-Encoding"] = "identity";
+	_directives["WwwAuthenticate"] = "";
+	_directives["Set-Cookie"] = "";
+}
+
+void ResponseHTTP::createStatusLine()
+{
+	_statusLine = "HTTP/1.1 "; // HTTP Version
+	_statusLine += _statusCode; // Status Code
+	_statusLine += "\n"; // Fin de Status Line
+}
+
+void ResponseHTTP::createHeaders()
+{
+	_headers += "Content-Type: " + _directives["Content-Type"] + "\n";
+	_headers += "Content-Length: " + _directives["Content-Length"] + "\n";
+	_headers += "\n";
 }
 
 void ResponseHTTP::openFile(std::string requested_filename)
 {
-	std::ifstream requested_file("../HTML/" + requested_filename);
-	std::ifstream error_file("../HTML/404.html");
-	std::string r_file;
-	std::string line;
+	std::ifstream		requested_file("../HTML/" + requested_filename);
+	std::stringstream	buffer;
 
 	if (!requested_file.is_open())
 	{
-		while (getline(error_file, line))
-			r_file += line + '\n';
-		error_file.close();
+		_statusCode = "404 Not Found";
+		_directives["Content-Type"] = "text/html";
+		_body = "<!doctype html><html><head><title>404</title></head><body><p><strong>Error : </strong>404 Not Found.</p></body></html>";
+		_directives["Content-Length"] = ft_itoa(_body.size());
+
 	}
 	else
 	{
-		while (getline(requested_file, line))
-			r_file += line + '\n';
+		_statusCode = "200 OK";
+		buffer << requested_file.rdbuf();
 		requested_file.close();
+		_body = buffer.str();
+		_directives["Content-Type"] = "text/html";
+		_directives["Content-Length"] = ft_itoa(_body.size());
 	}
-
-	_body = r_file;
 }

@@ -21,12 +21,12 @@ class Webserv
 
 
 		void	init();
-		void	initServers();
+		void	launchServers();
 		void 	closeServers();
 		int		initSocket( t_network network );
 		void	handleRead( int clientFD );
 		void	acceptNewClient( int serverFD );
-		bool	fd_is_server( int ready_fd );
+		bool	isFDServer( int readyFD );
 
 };
 

@@ -12,11 +12,16 @@ class ResponseHTTP
 		void		requestFile(std::string requested_filename);
 		std::string	getResponseHTTP();
 	private:
-		std::string	_header;
-		std::string _body;
-		char *		_response;
+		std::string							_statusLine;
+		std::string							_statusCode;
+		std::string							_headers;
+		std::string							_body;
+		std::map<std::string, std::string>	_directives;
 
-		void		createHeader();
+		void		createStatusLine();
+		void		createHeaders();
+		void		initDirectives();
+
 		void 		openFile(std::string requested_file);
 };
 
