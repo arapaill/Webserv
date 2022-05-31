@@ -1,6 +1,8 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
+#include "../Includes/headers.hpp"
+
 class Config
 {
 	public:

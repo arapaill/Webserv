@@ -3,7 +3,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-# define BUFFER_SIZE 4096
 
 Parser::Parser(void) {}
 Parser::Parser(Parser const & other)
