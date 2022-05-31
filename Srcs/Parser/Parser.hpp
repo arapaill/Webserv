@@ -1,12 +1,8 @@
 #ifndef PARSER_HPP
 # define PARSER_HPP
 
-# include "Config.hpp"
-# include <vector>
-#include <iostream>
-#include <fstream>
-#include <fstream>
-# include <sstream>
+# include "../../Includes/headers.hpp"
+# include "../../Includes/Config.hpp"
 
 class Parser
 {
