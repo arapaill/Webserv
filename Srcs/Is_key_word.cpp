@@ -51,9 +51,9 @@ void    Parser::is_listen(std::string info)
 		tmp = cmd.at(i);
         
        //std::cout << "TMP:" << tmp << std::endl;
-		if(isNumber(tmp) && _config_file.get_network().get_port() == -1)
+		if(isNumber(tmp) && _config_file.get_port() == -1)
         {
-			_config_file.get_network().set_port(atoi(tmp.c_str()));
+			_config_file.set_port(atoi(tmp.c_str()));
         }
         if((tmp.find(":")) == std::string::npos &&
         ( tmp.find(".") != std::string::npos || tmp == "localhost"))
@@ -63,13 +63,13 @@ void    Parser::is_listen(std::string info)
             else
 			    host = tmp;
             //std::cout << "HOST: " << host.c_str() << std::endl;
-            _config_file.get_network().get_host().s_addr = inet_addr(host.c_str());
+            _config_file.get_host().s_addr = inet_addr(host.c_str());
            // std::cout << _config_file.get_network().get_host().s_addr << std::endl;
         }
         if(isText(tmp) && tmp != "listen")
         {
            // std::cout << "TMP:" << tmp << std::endl;
-            _config_file.get_network().set_host_name(tmp);
+            _config_file.set_host_name(tmp);
             //std::cout << "host_name: " << _config_file.get_network().get_host_name() << std::endl;
         }
         tmp.clear();

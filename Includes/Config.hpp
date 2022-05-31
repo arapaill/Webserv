@@ -1,8 +1,6 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
-# include "t_network.hpp"
-
 class Config
 {
 	public:
@@ -12,37 +10,35 @@ class Config
 
 		Config & operator=(const Config & rhs)
 		{
-			_network = rhs._network;
+			this->_host = rhs._host;
+			this->_port = rhs._port;
+			this->_host_name = rhs._host_name;
 			_root = rhs._root;
 			_server_name = rhs._server_name;
 			_index = rhs._index;
 			return *this;
 		}
 
-		void		set_network(t_network &network) {_network = network;};
+		void			set_host(struct in_addr host) {_host = host;};
+		void			set_port(int port) {_port = port;};
+		void			set_host_name(std::string host_name) { _host_name = host_name;};
 		void		set_root(std::string &root) {_root = root;};
 		void		set_server_name(std::string server_name) {_server_name = server_name;};
 		void		set_index(std::string index) {_index = index;};
 		void		set_autoindex(bool autoindex) {_autoindex = autoindex;};
 		void		set_client_max_body_size(size_t size) {_client_max_body_size = size;};
 
-		t_network	&get_network(void){return(_network);};
+		struct in_addr	& get_host(void) {return(_host);};
+		int				& get_port(void) {return(_port);};
+		std::string		& get_host_name(void) {return(_host_name);};
 		std::string	&get_root(void) {return(_root);};
 		std::string	&get_server_name(void){return(_server_name);};
 		std::string	&get_index(void) {return(_index);};
-		/*
-		void    debug(void)
-		{
-			std::cout << "__________ DEBUG __________\n";
-			_network.debug();
-			std::cout << "ROOT : " << _root << std::endl;
-			std::cout << "SERVER_NAME : " << _server_name << std::endl;
-			std::cout << "INDEX : " << _index << std::endl;
-			std::cout << "__________ END __________\n";
-		}
-		*/
+
 	private: 
-		t_network			_network;
+		struct in_addr	    _host;
+		int				    _port;
+		std::string		    _host_name;
 		std::string         _root;
 		std::string         _server_name;
 		std::string			_index;

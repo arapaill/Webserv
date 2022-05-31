@@ -103,9 +103,9 @@ void	Parser::init_config_file(void)
 	_config_file.set_root(null);
 	_config_file.set_server_name(null);
 	_config_file.set_index(null);
-	_config_file.get_network().get_host().s_addr = inet_addr("0.0.0.0");
-	_config_file.get_network().set_port(-1);
-	_config_file.get_network().set_host_name(null);
+	_config_file.get_host().s_addr = inet_addr("0.0.0.0");
+	_config_file.set_port(-1);
+	_config_file.set_host_name(null);
 }
 
 void    Parser::parse(void)
