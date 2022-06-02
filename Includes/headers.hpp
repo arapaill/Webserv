@@ -19,6 +19,7 @@
 # include <vector>
 # include <signal.h>
 # include <map>
+# include <sys/select.h>
 
 # include "../Srcs/Parser/Parser.hpp"
 # include "Config.hpp"

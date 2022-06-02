@@ -12,27 +12,43 @@ void Webserv::run()
 	
 	int n = 0;
 	std::string wait[] = {"⠋", "⠙", "⠸", "⠴", "⠦", "⠇"};
-	int timeout = 200;
-	int nfds = 0;
+	int ret = 0;
 
 	init();
 	while (g_run)
 	{
 		errno = 0;
 
-		nfds = epoll_wait(_epollFD, _events, MAX_EVENTS, timeout);
-		if (errno == EINVAL || errno == EFAULT || errno == EBADFD)
-			std::cerr << RED << "Error: epoll_wait() failed: " << strerror(errno) << RESET << std::endl;
-		else if (errno == EINTR) // epoll interrupted by a signal (CTRL+C)
+		_readySockets = _currentSockets;
+
+		ret = select(FD_SETSIZE, &_readySockets, NULL, NULL, NULL);
+
+		if (errno == EINTR) // Je ne sais pas si c'est encore nécessaire..
 			g_run = false;
-		for (int i = 0 ; i < nfds ; i++)
+		if (ret < 0)
 		{
-			if (_events[i].events & EPOLLIN && isFDServer(_events[i].data.fd))
-				acceptNewClient(_events[i].data.fd);
-			else if (_events[i].events & EPOLLIN)
-				handleRead(_events[i].data.fd);
+			std::cerr << RED << "Error: select() failed: " << RESET << std::endl;
+			exit(EXIT_FAILURE);
 		}
-		if (nfds == 0) {
+
+		for (int i = 0 ; i < FD_SETSIZE ; i++)
+		{
+			if (FD_ISSET(i, &_readySockets))
+			{
+				if (isServer(i))
+				{
+					int clientSocket = acceptNewClient(i);
+					FD_SET(clientSocket, &_currentSockets);
+				}
+				else
+				{
+					handleRead(i);
+					FD_CLR(i, &_currentSockets);
+				}
+			}
+		}
+
+		if (ret == 0) {
 			std::cout << YELLOW << "\r" << wait[(n++ % 6)] << " waiting for connection" << RESET << std::flush;
 		}
 	}
@@ -45,20 +61,9 @@ void Webserv::setConfig( std::vector<Config> & configs ) { _serversConfig = conf
 // Private
 void Webserv::init()
 {
-	_epollFD = epoll_create1(0);
-
-	if (_epollFD == -1)
-		throw (std::runtime_error("Error: epoll_create1() failed"));
+	FD_ZERO(&_currentSockets);
 
 	launchServers();
-
-	std::memset((struct epoll_event *)&_ev, 0, sizeof(_ev));
-	for (std::vector<int>::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
-	{
-		_ev.data.fd = *it;
-		_ev.events = EPOLLIN;
-		epoll_ctl(_epollFD, EPOLL_CTL_ADD, *it, &_ev);
-	}
 }
 
 void Webserv::launchServers()
@@ -66,7 +71,9 @@ void Webserv::launchServers()
 	for (std::vector<Config>::iterator it = _serversConfig.begin(); it != _serversConfig.end(); it++)
 	{
 		std::cout << YELLOW << "Launching server \"" << it->get_server_name() << "\"...\n" << RESET;
-		_serversFD.push_back(initSocket(*it));
+		int serverSocket = initSocket(*it);
+		_serversFD.push_back(serverSocket);
+		FD_SET(serverSocket, &_currentSockets);
 		std::cout << GREEN << "Server successfuly launched.\n" << RESET;
 	}
 }
@@ -76,7 +83,6 @@ void Webserv::closeServers()
 	std::cout << YELLOW << "\nShutting down server...\n" << RESET;
 	for (std::vector<int>::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
 		close(*it);
-	close(_epollFD);
 }
 
 /* S'occupe de créer le socket avec l'addresse IP 
@@ -85,12 +91,13 @@ void Webserv::closeServers()
 */
 int Webserv::initSocket( Config serverConfig )
 {
-	int 				socketListening;
+	int 				serverSocket;
 	struct sockaddr_in 	serverAddress;
 
-	fcntl(socketListening, F_SETFL, O_NONBLOCK);
-	if ((socketListening = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	fcntl(serverSocket, F_SETFL, O_NONBLOCK);
+	if ((serverSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
+		closeSockets();
 		throw (std::logic_error("Error: socket() failed"));
 	}
 
@@ -99,41 +106,41 @@ int Webserv::initSocket( Config serverConfig )
 	serverAddress.sin_addr.s_addr = serverConfig.get_host().s_addr;
 	serverAddress.sin_port = htons(serverConfig.get_port());
 
-	if (bind(socketListening, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)
+	if (bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)
 	{
+		closeSockets();
 		throw (std::logic_error("Error: bind() failed"));
 	}
 	
-	if (listen(socketListening, MAX_CLIENTS) < 0)
+	if (listen(serverSocket, MAX_CLIENTS) < 0)
 	{
+		closeSockets();
 		throw (std::logic_error("Error: listen() failed"));
 	}
 
-	return (socketListening);
+	return (serverSocket);
 }
 
-void Webserv::acceptNewClient( int serverFD )
+int Webserv::acceptNewClient( int serverSocket )
 {
-	int newSocket;
+	int clientSocket;
 
-	if ((newSocket = accept(serverFD, NULL, NULL)) < 0)
+	if ((clientSocket = accept(serverSocket, NULL, NULL)) < 0)
 	{
 		if (errno != EWOULDBLOCK)
+		{
 			 std::cerr << RED << "Error: accept() failed" << RESET << std::endl;
+			 return (-1);
+		}
 	}
 
-	if (fcntl(newSocket, F_SETFL, O_NONBLOCK) < 0)
+	if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) < 0)
 	{
 		std::cerr << RED << "Error: fcntl() failed" << RESET << std::endl;
-		return ;
+		return (-1);
 	}
 
-	_ev.data.fd = newSocket;
-	_ev.events = EPOLLIN;
-	epoll_ctl(_epollFD, EPOLL_CTL_ADD, newSocket, &_ev);
-/* 
-	client.setSocket(new_socket);
-	_clients[new_socket] = client; */
+	return (clientSocket);
 }
 
 void Webserv::handleRead( int clientFD )
@@ -154,13 +161,13 @@ void Webserv::handleRead( int clientFD )
 		return ;
 	else
 	{
-		//std::cout << buffer;
+		//std::cout << _serversConfig[clientFD].get_port();
 
 		std::string requestedFile = &request[4];
 
 		requestedFile = requestedFile.substr(0, requestedFile.find(' '));
 
-		std::cout << GREEN << "\nClient requested file \"" << requestedFile << "\"" << RESET << std::flush;
+		std::cout << GREEN << "\nREQUEST :" << RESET << std::flush;
 
 		ResponseHTTP response;
 
@@ -171,16 +178,19 @@ void Webserv::handleRead( int clientFD )
 		std::string s_response = response.getResponseHTTP();
 		char * c_response = &s_response[0];
 		write(clientFD, c_response, strlen(c_response));
-		_ev.events = EPOLLOUT;
-		_ev.data.fd = clientFD;
-		epoll_ctl(_epollFD, EPOLL_CTL_MOD, clientFD, &_ev);
 	}
 }
 
-bool	Webserv::isFDServer(int readyFD)
+bool	Webserv::isServer(int readyFD)
 {
 	for (std::vector<int>::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
 		if (*it == readyFD)
 			return (true);
 	return (false);
+}
+
+void Webserv::closeSockets()
+{
+	for (std::vector<int>::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
+		close(*it);
 }

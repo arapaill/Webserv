@@ -7,7 +7,12 @@ static std::string	ft_itoa(int nb)
 }
 
 // Public
-ResponseHTTP::ResponseHTTP() 
+ResponseHTTP::ResponseHTTP()
+{
+	initDirectives();
+}
+
+ResponseHTTP::ResponseHTTP(Config config) : _config(config)
 {
 	initDirectives();
 }
@@ -58,7 +63,7 @@ void ResponseHTTP::createHeaders()
 
 void ResponseHTTP::openFile(std::string requested_filename)
 {
-	std::ifstream		requested_file("../HTML/" + requested_filename);
+	std::ifstream		requested_file(_config.get_root() + "/" + requested_filename);
 	std::stringstream	buffer;
 
 	if (!requested_file.is_open())
