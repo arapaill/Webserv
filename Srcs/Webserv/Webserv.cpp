@@ -24,7 +24,10 @@ void Webserv::run()
 		ret = select(FD_SETSIZE, &_readySockets, NULL, NULL, NULL);
 
 		if (errno == EINTR) // Je ne sais pas si c'est encore nécessaire..
+		{
 			g_run = false;
+			continue ;
+		}
 		if (ret < 0)
 		{
 			std::cerr << RED << "Error: select() failed: " << RESET << std::endl;
@@ -43,6 +46,7 @@ void Webserv::run()
 				else
 				{
 					handleRead(i);
+
 					FD_CLR(i, &_currentSockets);
 				}
 			}
@@ -86,7 +90,7 @@ void Webserv::closeServers()
 }
 
 /* S'occupe de créer le socket avec l'addresse IP 
-** ainsi que le port renseigné dans network.
+** ainsi que le port renseigné dans le fichier config.
 ** Le socket est réutilisable et non-bloquant.
 */
 int Webserv::initSocket( Config serverConfig )
@@ -99,6 +103,17 @@ int Webserv::initSocket( Config serverConfig )
 	{
 		closeSockets();
 		throw (std::logic_error("Error: socket() failed"));
+	}
+
+	/* 
+	** Permet de réutiliser directement un socket lorsqu'on relance le programme.
+	*/
+	int		optVal = 1;
+	int		optLen = sizeof(optVal);
+	if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &optVal, optLen) < 0)
+	{
+		closeSockets();
+		throw (std::logic_error("Error: setsockopt(SO_REUSEADDR) failed"));
 	}
 
 	memset((char *)&serverAddress, 0, sizeof(serverAddress));
@@ -145,12 +160,11 @@ int Webserv::acceptNewClient( int serverSocket )
 
 void Webserv::handleRead( int clientFD )
 {
-	char request[BUFFER_SIZE + 1] = {0};
-	std::string line;
+	char			request[BUFFER_SIZE + 1] = {0};
+	ssize_t			ret = recv(clientFD, request, BUFFER_SIZE, 0);
+	//Config			serverConfig = getServerConfig(findHost(request)); Double Free
 
-	ssize_t ret = recv(clientFD, request, BUFFER_SIZE, 0);
-
-	std::cout << "\n" << request;
+	//std::cout << "\n" << request;
 
 	if (ret == -1)
 	{
@@ -161,29 +175,28 @@ void Webserv::handleRead( int clientFD )
 		return ;
 	else
 	{
+		std::cout << GREEN << "REQUEST :\n" << RESET << std::flush;
 		//std::cout << _serversConfig[clientFD].get_port();
 
-		std::string requestedFile = &request[4];
-
-		requestedFile = requestedFile.substr(0, requestedFile.find(' '));
-
-		std::cout << GREEN << "\nREQUEST :" << RESET << std::flush;
-
+		std::string method = findMethod(request);
+		std::string requestedFile = findFileRequested(request);
 		ResponseHTTP response;
 
-		if (requestedFile.size() == 1)
-			response.requestFile("index.html");
-		else
-			response.requestFile(requestedFile + ".html");
-		std::string s_response = response.getResponseHTTP();
-		char * c_response = &s_response[0];
-		write(clientFD, c_response, strlen(c_response));
+		std::cout	<< "Host : " << findHost(request) << std::endl << "Method : " << method << std::endl
+					<< "File Requested : " << requestedFile << std::endl;
+
+		if (method == "GET" && requestedFile.size() == 1)
+			response.GET("index.html");
+		else if (method == "GET")
+			response.GET(requestedFile + ".html");
+
+		write(clientFD, response.getResponseHTTP().c_str(), response.getResponseHTTP().size());
 	}
 }
 
-bool	Webserv::isServer(int readyFD)
+bool Webserv::isServer( int readyFD )
 {
-	for (std::vector<int>::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
+	for (std::vector<int>::iterator it = _serversFD.begin() ; it != _serversFD.end() ; it++)
 		if (*it == readyFD)
 			return (true);
 	return (false);
@@ -191,6 +204,59 @@ bool	Webserv::isServer(int readyFD)
 
 void Webserv::closeSockets()
 {
-	for (std::vector<int>::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
+	for (std::vector<int>::iterator it = _serversFD.begin() ; it != _serversFD.end() ; it++)
 		close(*it);
+}
+
+/* Config Webserv::getServerConfig( std::string host )
+{
+	for (std::vector<Config>::iterator it = _serversConfig.begin() ; it != _serversConfig.end() ; it++)
+	{
+		if (&host[5] == it->get_port())
+			return (*it);
+	}
+} */
+
+std::string Webserv::findMethod( char * request )
+{
+	char *		cpy;
+	std::string ret;
+
+	cpy = (char *) malloc(sizeof(char) * strlen(request) + 1);
+	strcpy(cpy, request);
+	ret = strtok(cpy, " ");
+
+	delete cpy;
+	return (ret);
+}
+
+std::string Webserv::findFileRequested( char * request )
+{
+	char *		cpy;
+	std::string ret;
+
+	cpy = (char *) malloc(sizeof(char) * strlen(request) + 1);
+	strcpy(cpy, request);
+
+	ret = strtok(cpy, " ");
+	ret = strtok(NULL, " ");
+
+	delete cpy;
+	return (ret);
+}
+
+std::string Webserv::findHost( std::string request )
+{
+	size_t start, len;
+	size_t i = request.find("Host:");
+
+	start = i + 6;
+	len = 0;
+	while (request[i] != '\n')
+	{
+		i++;
+		len++;
+	}
+
+	return (request.substr(start, len - 6));
 }

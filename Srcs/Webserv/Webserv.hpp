@@ -31,6 +31,13 @@ class Webserv
 		bool	isServer( int readyFD );
 		void	closeSockets();
 
+		// Utils
+		std::string findMethod( char * request );
+		std::string findFileRequested( char * request );
+		std::string findHost( std::string request );
+		Config		getServerConfig( std::string host );
+
+
 
 };
 
