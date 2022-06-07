@@ -28,10 +28,12 @@ void Webserv::run()
 			g_run = false;
 			continue ;
 		}
-		if (ret < 0)
-		{
+		if (ret < 0) {
 			std::cerr << RED << "Error: select() failed: " << RESET << std::endl;
 			exit(EXIT_FAILURE);
+		}
+		if (ret == 0) { // Ne fonctionne plus
+			std::cout << YELLOW << "\r" << wait[(n++ % 6)] << " waiting for connection" << RESET << std::flush;
 		}
 
 		for (int i = 0 ; i < FD_SETSIZE ; i++)
@@ -50,10 +52,6 @@ void Webserv::run()
 					FD_CLR(i, &_currentSockets);
 				}
 			}
-		}
-
-		if (ret == 0) {
-			std::cout << YELLOW << "\r" << wait[(n++ % 6)] << " waiting for connection" << RESET << std::flush;
 		}
 	}
 	closeServers();
@@ -162,9 +160,7 @@ void Webserv::handleRead( int clientFD )
 {
 	char			request[BUFFER_SIZE + 1] = {0};
 	ssize_t			ret = recv(clientFD, request, BUFFER_SIZE, 0);
-	//Config			serverConfig = getServerConfig(findHost(request)); Double Free
-
-	//std::cout << "\n" << request;
+	Config			serverConfig = getServerConfig(findHost(request));
 
 	if (ret == -1)
 	{
@@ -180,7 +176,7 @@ void Webserv::handleRead( int clientFD )
 
 		std::string method = findMethod(request);
 		std::string requestedFile = findFileRequested(request);
-		ResponseHTTP response;
+		ResponseHTTP response(serverConfig);
 
 		std::cout	<< "Host : " << findHost(request) << std::endl << "Method : " << method << std::endl
 					<< "File Requested : " << requestedFile << std::endl;
@@ -208,14 +204,15 @@ void Webserv::closeSockets()
 		close(*it);
 }
 
-/* Config Webserv::getServerConfig( std::string host )
+Config & Webserv::getServerConfig( std::string host )
 {
 	for (std::vector<Config>::iterator it = _serversConfig.begin() ; it != _serversConfig.end() ; it++)
 	{
-		if (&host[5] == it->get_port())
+		std::string configHost = it->get_host_name() + ":" + std::to_string(it->get_port());
+		if (host == configHost)
 			return (*it);
 	}
-} */
+}
 
 std::string Webserv::findMethod( char * request )
 {
@@ -258,5 +255,5 @@ std::string Webserv::findHost( std::string request )
 		len++;
 	}
 
-	return (request.substr(start, len - 6));
+	return (request.substr(start, len - 7));
 }
