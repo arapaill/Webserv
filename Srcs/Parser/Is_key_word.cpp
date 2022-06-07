@@ -61,6 +61,7 @@ void    Parser::is_listen(std::string info)
 			    host = "127.0.0.1";
             else
 			    host = tmp;
+            _config_file.set_host_name(host);
             //std::cout << "HOST: " << host.c_str() << std::endl;
             _config_file.get_host().s_addr = inet_addr(host.c_str());
            // std::cout << _config_file.get_network().get_host().s_addr << std::endl;
