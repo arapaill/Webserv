@@ -59,9 +59,10 @@ void    Parser::init_vector_string(void)
 	}
 }
 
-void    Parser::get_info(std::vector<std::string> vector_string)
+void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 {
 	std::string	info;
+    std::vector<std::string> vector_info;
 
 	for(std::size_t i = 0; i != vector_string.size() && vector_string.at(i) != "}"; i++)
 	{
@@ -72,20 +73,34 @@ void    Parser::get_info(std::vector<std::string> vector_string)
 		if (info.find("listen ") != std::string::npos)
 		{
 			//std::cout << "in listen \n";
-			is_listen(info);
+			is_listen(info, config);
 		}
 		else if (info.find("server_name ") != std::string::npos)
-			is_server_name(info);
+        {
+			is_server_name(info, config);
+           // std::cout << config.get_server_name() << std::endl;
+        }
 		else if (info.find("root ") != std::string::npos)
-			is_root(info);
+			is_root(info, config);
 		else if (info.find("index ") != std::string::npos)
-			is_index(info);
+			is_index(info, config);
 		else if (info.find("autoindex ") != std::string::npos)
-			is_autoindex(info);
-	   /* else if (info.find("error_page ") != std::string::npos)
+			is_autoindex(info, config);
+        else if (info.find("location ") != std::string::npos)
+        {
+            vector_info.push_back(info);
+            while(info.find("}") == std::string::npos)
+            {
+                i++;
+                info = vector_string.at(i);
+                vector_info.push_back(info);
+            }
+            is_location(vector_info);
+        }
+	   /* else if (info.find("error_page ") != std ::string::npos)
 			is_error_page(info);*/
 		else if (info.find("client_max_body_size ") != std::string::npos)
-			is_client_max_body_size(info);
+			is_client_max_body_size(info, config);
 		/*else if (info.find("fastcgi_param ") != std::string::npos)
 			is_fastcgi_param(info);*/
 	}
@@ -109,10 +124,10 @@ void    Parser::parse(void)
 	for(std::size_t i = 0; i < _allblock.size(); i++)
 	{
 		init_config_file();
-		get_info(_allblock.at(i));
+		get_info(_allblock.at(i), _config_file);
 		_vector_Config.push_back(_config_file);
 	}
-//    std::cout << _vector_Config.at(0).get_server_name() << std::endl;
+    //std::cout << _vector_Config.at(0).get_server_name() << std::endl;
 }
 
 /*

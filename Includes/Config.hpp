@@ -26,20 +26,22 @@ class Config
 		void			set_host(struct in_addr host) {_host = host;};
 		void			set_port(int port) {_port = port;};
 		void			set_host_name(std::string host_name) { _host_name = host_name;};
-		void		set_root(std::string &root) {_root = root;};
-		void		set_server_name(std::string server_name) {_server_name = server_name;};
-		void		set_index(std::string index) {_index = index;};
-		void		set_autoindex(bool autoindex) {_autoindex = autoindex;};
-		void		set_client_max_body_size(size_t size) {_client_max_body_size = size;};
-
-		struct in_addr	& get_host(void) {return(_host);};
+		void		    set_root(std::string &root) {_root = root;};
+		void		    set_server_name(std::string server_name) {_server_name = server_name;};
+		void		    set_index(std::string index) {_index = index;};
+		void		    set_autoindex(bool autoindex) {_autoindex = autoindex;};
+		void		    set_client_max_body_size(size_t size) {_client_max_body_size = size;};
+        void            set_location(std::map<std::string, Config> location) {_location = location;};
+		
+        struct in_addr	& get_host(void) {return(_host);};
 		int				& get_port(void) {return(_port);};
 		std::string		& get_host_name(void) {return(_host_name);};
 		std::string		& get_root(void) {return(_root);};
 		std::string		& get_server_name(void){return(_server_name);};
 		std::string		& get_index(void) {return(_index);};
-		bool			& get_autoindex(bool autoindex) {return(_autoindex);};
-		size_t			& get_client_max_body_size(size_t size) {return(_client_max_body_size);};
+		bool			& get_autoindex(void) {return(_autoindex);};
+		size_t			& get_client_max_body_size(void) {return(_client_max_body_size);};
+        std::map<std::string, Config> & get_location(void) {return(_location);};
 
 	private: 
 		struct in_addr	    			_host;

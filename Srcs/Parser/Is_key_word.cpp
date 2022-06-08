@@ -33,7 +33,7 @@ bool isText(const std::string& str)
     return true;
 }
 
-void    Parser::is_listen(std::string info)
+void    Parser::is_listen(std::string info, Config &config)
 {
 	std::vector<std::string> cmd;
 	std::string tmp;
@@ -50,9 +50,9 @@ void    Parser::is_listen(std::string info)
 		tmp = cmd.at(i);
         
        //std::cout << "TMP:" << tmp << std::endl;
-		if(isNumber(tmp) && _config_file.get_port() == -1)
+		if(isNumber(tmp) && config.get_port() == -1)
         {
-			_config_file.set_port(atoi(tmp.c_str()));
+			config.set_port(atoi(tmp.c_str()));
         }
         if((tmp.find(":")) == std::string::npos &&
         ( tmp.find(".") != std::string::npos || tmp == "localhost"))
@@ -61,22 +61,22 @@ void    Parser::is_listen(std::string info)
 			    host = "127.0.0.1";
             else
 			    host = tmp;
-            _config_file.set_host_name(host);
+            config.set_host_name(host);
             //std::cout << "HOST: " << host.c_str() << std::endl;
-            _config_file.get_host().s_addr = inet_addr(host.c_str());
-           // std::cout << _config_file.get_network().get_host().s_addr << std::endl;
+            config.get_host().s_addr = inet_addr(host.c_str());
+            //std::cout << config.get_host().s_addr << std::endl;
         }
         if(isText(tmp) && tmp != "listen")
         {
            // std::cout << "TMP:" << tmp << std::endl;
-            _config_file.set_host_name(tmp);
-            //std::cout << "host_name: " << _config_file.get_network().get_host_name() << std::endl;
+            config.set_host_name(tmp);
+            //std::cout << "host_name: " << config.get_network().get_host_name() << std::endl;
         }
         tmp.clear();
 	}
 }
 
-void    Parser::is_server_name(std::string info)
+void    Parser::is_server_name(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
     std::string tmp;
@@ -97,11 +97,11 @@ void    Parser::is_server_name(std::string info)
     else
         tmp = cmd.at(1);
     
-    _config_file.set_server_name(tmp);
-   
+    config.set_server_name(tmp);
+    std::cout << config.get_server_name() << std::endl;
 }
 
-void    Parser::is_root(std::string info)
+void    Parser::is_root(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
     std::string tmp;
@@ -117,10 +117,10 @@ void    Parser::is_root(std::string info)
         std::cout << "too much directives for root\n";
         exit(1);
     }
-    _config_file.set_root(cmd.at(1));
+    config.set_root(cmd.at(1));
 }
 
-void    Parser::is_index(std::string info)
+void    Parser::is_index(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
     std::string tmp;
@@ -136,10 +136,10 @@ void    Parser::is_index(std::string info)
         std::cout << "too much directives for index\n";
         exit(1);
     }
-    _config_file.set_index(cmd.at(1));
+    config.set_index(cmd.at(1));
 }
 
-void    Parser::is_autoindex(std::string info)
+void    Parser::is_autoindex(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
     cmd = split(info, ' ');
@@ -155,12 +155,12 @@ void    Parser::is_autoindex(std::string info)
         exit(1);
     }
     if(cmd.at(1) == "On")
-        _config_file.set_autoindex(true);
+        config.set_autoindex(true);
     else
-        _config_file.set_autoindex(false);
+        config.set_autoindex(false);
 }
 
-void    Parser::is_client_max_body_size(std::string info)
+void    Parser::is_client_max_body_size(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
     cmd = split(info, ' ');
@@ -174,5 +174,22 @@ void    Parser::is_client_max_body_size(std::string info)
         std::cout << "too much directives for index\n";
         exit(1);
     }
-    _config_file.set_client_max_body_size(atoi(cmd.at(1).c_str()));
+    config.set_client_max_body_size(atoi(cmd.at(1).c_str()));
+}
+
+void    Parser::is_location(std::vector<std::string> info)
+{
+    std::string location_name;
+    std::vector<std::string> cmd;
+    Config location_config;
+
+    cmd = split(info.at(0), ' ');
+    location_name = cmd.at(1);
+    info.erase(info.begin());
+    get_info(info, location_config);
+    
+    
+    std::cout << location_name << std::endl;
+    _config_file.get_location()[location_name] = location_config;
+    //std::cout <<  _config_file.get_location().at(location_name).get_host_name() << std::endl;
 }
