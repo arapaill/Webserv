@@ -206,12 +206,13 @@ void Webserv::closeSockets()
 
 Config & Webserv::getServerConfig( std::string host )
 {
-	for (std::vector<Config>::iterator it = _serversConfig.begin() ; it != _serversConfig.end() ; it++)
+		for (std::vector<Config>::iterator it = _serversConfig.begin() ; it != _serversConfig.end() ; it++)
 	{
 		std::string configHost = it->get_host_name() + ":" + std::to_string(it->get_port());
 		if (host == configHost)
 			return (*it);
 	}
+	throw (std::logic_error("Error: Server Config Not Found"));
 }
 
 std::string Webserv::findMethod( char * request )
