@@ -98,7 +98,7 @@ void    Parser::is_server_name(std::string info, Config &config)
         tmp = cmd.at(1);
     
     config.set_server_name(tmp);
-    std::cout << config.get_server_name() << std::endl;
+   // std::cout << config.get_server_name() << std::endl;
 }
 
 void    Parser::is_root(std::string info, Config &config)
@@ -188,8 +188,7 @@ void    Parser::is_location(std::vector<std::string> info)
     info.erase(info.begin());
     get_info(info, location_config);
     
-    
-    std::cout << location_name << std::endl;
+    //std::cout << location_name << std::endl;
     _config_file.get_location()[location_name] = location_config;
-    //std::cout <<  _config_file.get_location().at(location_name).get_host_name() << std::endl;
+   // std::cout <<  _config_file.get_location().at(location_name).get_server_name() << std::endl;
 }
