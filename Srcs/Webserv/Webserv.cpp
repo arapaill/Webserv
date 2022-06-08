@@ -1,7 +1,7 @@
 #include "Webserv.hpp"
 
 // Public
-volatile bool g_run = true;
+volatile bool g_keepRunning = true;
 
 Webserv::Webserv() {};
 Webserv::~Webserv() {};
@@ -15,40 +15,27 @@ void Webserv::run()
 	int ret = 0;
 
 	init();
-	while (g_run)
+	while (g_keepRunning)
 	{
-		errno = 0;
-
 		_readySockets = _currentSockets;
 
 		ret = select(FD_SETSIZE, &_readySockets, NULL, NULL, NULL);
-
-		if (errno == EINTR) // Je ne sais pas si c'est encore nécessaire..
-		{
-			g_run = false;
-			continue ;
-		}
+	
 		if (ret < 0) {
+			if (g_keepRunning == false)
+				continue ;
 			std::cerr << RED << "Error: select() failed: " << RESET << std::endl;
 			exit(EXIT_FAILURE);
 		}
-		if (ret == 0) { // Ne fonctionne plus
-			std::cout << YELLOW << "\r" << wait[(n++ % 6)] << " waiting for connection" << RESET << std::flush;
-		}
 
-		for (int i = 0 ; i < FD_SETSIZE ; i++)
-		{
-			if (FD_ISSET(i, &_readySockets))
-			{
-				if (isServer(i))
-				{
+		for (int i = 0 ; i < FD_SETSIZE ; i++) {
+			if (FD_ISSET(i, &_readySockets)) {
+				if (isServer(i)) {
 					int clientSocket = acceptNewClient(i);
 					FD_SET(clientSocket, &_currentSockets);
 				}
-				else
-				{
+				else {
 					handleRead(i);
-
 					FD_CLR(i, &_currentSockets);
 				}
 			}
