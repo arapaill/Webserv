@@ -8,11 +8,9 @@ Webserv::~Webserv() {};
 
 void Webserv::run()
 {
-	std::cout << YELLOW << "Démarrage...\n" << RESET;
-	
-	int n = 0;
-	std::string wait[] = {"⠋", "⠙", "⠸", "⠴", "⠦", "⠇"};
 	int ret = 0;
+
+	std::cout << YELLOW << "Démarrage...\n" << RESET;
 
 	init();
 	while (g_keepRunning)
