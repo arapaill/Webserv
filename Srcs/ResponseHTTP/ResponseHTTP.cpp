@@ -1,19 +1,7 @@
 #include "ResponseHTTP.hpp"
 
-// Temp ?
-static std::string	ft_itoa(int nb)
-{
-	return (static_cast<std::ostringstream*>( &(std::ostringstream() << nb) )->str());
-}
-
 // Public
-ResponseHTTP::ResponseHTTP()
-{
-	initDirectives();
-	initStatusCode();
-}
-
-ResponseHTTP::ResponseHTTP(Config config) : _config(config)
+ResponseHTTP::ResponseHTTP(Config config, RequestHTTP request) : _config(config), _request(request)
 {
 	initDirectives();
 	initStatusCode();
@@ -24,6 +12,11 @@ ResponseHTTP::~ResponseHTTP() {};
 void ResponseHTTP::GET(std::string requested_filename)
 {
 	openFile(requested_filename);
+
+	_directives["Date"] = getDate();
+	_directives["Content-Type"] = "text/html";
+	_directives["Content-Length"] = std::to_string(_body.size());
+
 	createStatusLine();
 	createHeaders();
 }
@@ -117,8 +110,11 @@ void ResponseHTTP::createStatusLine()
 
 void ResponseHTTP::createHeaders()
 {
-	_headers += "Content-Type: " + _directives["Content-Type"] + "\n";
-	_headers += "Content-Length: " + _directives["Content-Length"] + "\n";
+	_headers += "Date: "			+ _directives["Date"] + "\n";
+	_headers += "Server: "			+ _directives["Server"] + "\n";
+	_headers += "Last-Modified: "	+ _directives["Last-Modified"] + "\n";
+	_headers += "Content-Length: "	+ _directives["Content-Length"] + "\n";
+	_headers += "Content-Type: "	+ _directives["Content-Type"] + "\n";
 	_headers += "\n";
 }
 
@@ -134,14 +130,22 @@ void ResponseHTTP::openFile(std::string requested_filename)
 		buffer << requested_file.rdbuf();
 		requested_file.close();
 		_body = buffer.str();
-		_directives["Content-Type"] = "text/html";
-		_directives["Content-Length"] = ft_itoa(_body.size());
 	}
 	else
 	{
 		_statusCode = generateStatusCode(404);
-		_directives["Content-Type"] = "text/html";
 		_body = "<!doctype html><html><head><title>404</title></head><body><p><strong>Error : </strong>404 Not Found.</p></body></html>";
-		_directives["Content-Length"] = ft_itoa(_body.size());
 	}
+}
+
+std::string	ResponseHTTP::getDate(void)
+{
+	char			buffer[100];
+	struct timeval	tv;
+	struct tm *		tm;
+
+	gettimeofday(&tv, NULL);
+	tm = gmtime(&tv.tv_sec);
+	strftime(buffer, 100, "%a, %d %b %Y %H:%M:%S GMT", tm);
+	return (std::string(buffer));
 }

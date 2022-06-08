@@ -171,12 +171,13 @@ void Webserv::handleRead( int clientFD )
 		return ;
 	else
 	{
-		std::cout << GREEN << "REQUEST :\n" << RESET << std::flush;
-		//std::cout << _serversConfig[clientFD].get_port();
+		std::cout << GREEN << "REQUEST :\n" << RESET;
 
-		std::string method = findMethod(request);
-		std::string requestedFile = findFileRequested(request);
-		ResponseHTTP response(serverConfig);
+		std::string		method = findMethod(request);
+		std::string		requestedFile = findFileRequested(request);
+		
+		RequestHTTP		parsedRequest(request);
+		ResponseHTTP	response(serverConfig, parsedRequest);
 
 		std::cout	<< "Host : " << findHost(request) << std::endl << "Method : " << method << std::endl
 					<< "File Requested : " << requestedFile << std::endl;
@@ -206,7 +207,7 @@ void Webserv::closeSockets()
 
 Config & Webserv::getServerConfig( std::string host )
 {
-		for (std::vector<Config>::iterator it = _serversConfig.begin() ; it != _serversConfig.end() ; it++)
+	for (std::vector<Config>::iterator it = _serversConfig.begin() ; it != _serversConfig.end() ; it++)
 	{
 		std::string configHost = it->get_host_name() + ":" + std::to_string(it->get_port());
 		if (host == configHost)

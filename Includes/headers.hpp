@@ -20,11 +20,12 @@
 # include <signal.h>
 # include <map>
 # include <sys/select.h>
+# include <sys/time.h>
 
 # include "../Srcs/Parser/Parser.hpp"
 # include "Config.hpp"
 
-# include "../Srcs/ResponseHTTP/ResponseHTTP.hpp"
+std::vector<std::string> split(const std::string & s, char seperator);
 
 //* COLORS
 # define RED "\033[31m"

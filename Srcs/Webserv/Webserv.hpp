@@ -2,6 +2,8 @@
 # define WEBSERV_HPP
 
 # include "../../Includes/headers.hpp"
+# include "../RequestHTTP/RequestHTTP.hpp"
+# include "../ResponseHTTP/ResponseHTTP.hpp"
 
 class Webserv
 {
@@ -20,7 +22,6 @@ class Webserv
 
 		// Inutilisé pour le moment
 		std::vector<int>		_clientsFD;
-		std::map<int, Config>	_servers;
 
 		void	init();
 		void	launchServers();
