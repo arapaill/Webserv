@@ -177,6 +177,15 @@ void    Parser::is_client_max_body_size(std::string info, Config &config)
     config.set_client_max_body_size(atoi(cmd.at(1).c_str()));
 }
 
+void    Parser::is_error_page(std::string info, Config config)
+{
+    std::vector<std::string> cmd;
+    cmd = split(info, ' ');
+
+    config.get_error_page()[atoi(cmd.at(1).c_str())] = cmd.at(2);
+   // std::cout << config.get_error_page()[atoi(cmd.at(1).c_str())];
+}
+
 void    Parser::is_location(std::vector<std::string> info)
 {
     std::string location_name;

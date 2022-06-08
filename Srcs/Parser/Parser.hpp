@@ -24,6 +24,7 @@ class Parser
         void    is_index(std::string info, Config &config);
         void    is_autoindex(std::string info, Config &config);
         void    is_client_max_body_size(std::string info, Config &config);
+        void    is_error_page(std::string info, Config config);
         void    is_location(std::vector<std::string> info);
         
         Config  &get_config_file(void){return(_config_file);};

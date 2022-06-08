@@ -63,7 +63,7 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 {
 	std::string	info;
     std::vector<std::string> vector_info;
-
+    
 	for(std::size_t i = 0; i != vector_string.size() && vector_string.at(i) != "}"; i++)
 	{
 		info = vector_string.at(i);
@@ -97,8 +97,8 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
             }
             is_location(vector_info);
         }
-	   /* else if (info.find("error_page ") != std ::string::npos)
-			is_error_page(info);*/
+	    else if (info.find("error_page ") != std ::string::npos)
+			is_error_page(info, config);
 		else if (info.find("client_max_body_size ") != std::string::npos)
 			is_client_max_body_size(info, config);
 		/*else if (info.find("fastcgi_param ") != std::string::npos)
@@ -127,7 +127,7 @@ void    Parser::parse(void)
 		get_info(_allblock.at(i), _config_file);
 		_vector_Config.push_back(_config_file);
 	}
-    //std::cout << _vector_Config.at(0).get_server_name() << std::endl;
+    std::cout << _vector_Config.at(0).get_server_name() << std::endl;
 }
 
 /*

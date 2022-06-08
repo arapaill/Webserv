@@ -31,7 +31,7 @@ class Config
 		void		    set_index(std::string index) {_index = index;};
 		void		    set_autoindex(bool autoindex) {_autoindex = autoindex;};
 		void		    set_client_max_body_size(size_t size) {_client_max_body_size = size;};
-        void            set_location(std::map<std::string, Config> location) {_location = location;};
+        
 		
         struct in_addr	& get_host(void) {return(_host);};
 		int				& get_port(void) {return(_port);};
@@ -42,6 +42,7 @@ class Config
 		bool			& get_autoindex(void) {return(_autoindex);};
 		size_t			& get_client_max_body_size(void) {return(_client_max_body_size);};
         std::map<std::string, Config> & get_location(void) {return(_location);};
+        std::map<int, std::string> & get_error_page(void) {return(_error_page);};
 
 	private: 
 		struct in_addr	    			_host;
@@ -53,6 +54,7 @@ class Config
 		bool							_autoindex;
 		size_t							_client_max_body_size;
 		std::map<std::string, Config>	_location;
+        std::map<int, std::string>      _error_page;
 };
 
 #endif
