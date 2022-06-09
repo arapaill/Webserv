@@ -167,8 +167,8 @@ void Webserv::handleRead( int clientFD )
 
 		if (parsedRequest.getMethod() == "GET")
 			response.GET(parsedRequest.getFile() + ".html");
-		/* else if (method == "POST")
-			response.POST(requestedFile + "html"); */
+		else if (parsedRequest.getMethod() == "POST")
+			response.POST(parsedRequest.getFile());
 
 		if (write(clientFD, response.getResponseHTTP().c_str(), response.getResponseHTTP().size()) == -1)
 			std::cerr << RED << "Coulnd't respond to the client." << RESET << std::endl;

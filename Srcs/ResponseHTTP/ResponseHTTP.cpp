@@ -27,11 +27,13 @@ void ResponseHTTP::GET(std::string filename)
 
 void ResponseHTTP::POST(std::string filename)
 {	
-	generateBody(filename);
+	//generateBody(filename);
 
 	_directives["Date"] = getDate();
 	_directives["Content-Type"] = "text/html";
 	_directives["Content-Length"] = std::to_string(_body.size());
+
+	_statusCode = generateStatusCode(501);
 
 	createStatusLine();
 	createHeaders();
