@@ -40,7 +40,7 @@ void    Parser::is_listen(std::string info, Config &config)
     std::string	host;
 
 	cmd = split(info, ' ');
-    if(cmd.size() < 3)
+    if(cmd.size() < 2)
     {
         std::cout << RED << "not enough directives for network\n" << RESET;
         exit(1);
@@ -184,6 +184,36 @@ void    Parser::is_error_page(std::string info, Config config)
 
     config.get_error_page()[atoi(cmd.at(1).c_str())] = cmd.at(2);
    // std::cout << config.get_error_page()[atoi(cmd.at(1).c_str())];
+}
+
+void    Parser::is_fastcgi_param(std::string info, Config config)
+{
+    std::vector<std::string> cmd;
+    cmd = split(info, ' ');
+
+    config.set_cgi_pass(cmd.at(1));
+}
+
+void    Parser::is_alias(std::string info, Config config)
+{
+    std::vector<std::string> cmd;
+    cmd = split(info, ' ');
+
+    if(cmd.size() < 2)
+    {
+        std::cout << RED << "not enough directives for network\n" << RESET;
+        exit(1);
+    }
+    config.set_alias(cmd.at(1));
+}
+
+void    Parser::is_allow_methods(std::string info, Config config)
+{
+    std::vector<std::string> cmd;
+    cmd = split(info, ' ');
+
+    for(int i = 1; i != cmd.size(); i++)
+        config.get_methods().push_back(cmd.at(i));
 }
 
 void    Parser::is_location(std::vector<std::string> info)
