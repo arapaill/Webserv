@@ -107,6 +107,8 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 			is_alias(info, config);
         else if (info.find("allow_methods ") != std::string::npos)
 			is_allow_methods(info, config);
+        else if (info.find("return ") != std ::string::npos)
+			is_return(info, config);
 	}
 }
 

@@ -186,6 +186,15 @@ void    Parser::is_error_page(std::string info, Config config)
    // std::cout << config.get_error_page()[atoi(cmd.at(1).c_str())];
 }
 
+void    Parser::is_return(std::string info, Config config)
+{
+    std::vector<std::string> cmd;
+    cmd = split(info, ' ');
+
+    config.get_return()[atoi(cmd.at(1).c_str())] = cmd.at(2);
+   // std::cout << config.get_error_page()[atoi(cmd.at(1).c_str())];
+}
+
 void    Parser::is_fastcgi_param(std::string info, Config config)
 {
     std::vector<std::string> cmd;
