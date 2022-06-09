@@ -33,7 +33,6 @@ class Webserv
 		void	closeSockets();
 
 		// Utils
-		std::string findFileRequested( char * request );
 		Config &	getServerConfig( std::string host );
 
 };

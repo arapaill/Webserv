@@ -15,21 +15,27 @@ RequestHTTP::RequestHTTP( std::string request )
 
 RequestHTTP::~RequestHTTP() {};
 
-std::string					RequestHTTP::getMethod() { return (_method); };
-std::vector<std::string>	RequestHTTP::getAccept() { return (_accept); };
-std::string					RequestHTTP::getHost() { return (_host); };
+std::string					RequestHTTP::getFile()		{ return (_file);	};
+std::string					RequestHTTP::getBody()		{ return (_body);	};
+std::string					RequestHTTP::getMethod()	{ return (_method);	};
+std::vector<std::string>	RequestHTTP::getAccept()	{ return (_accept);	};
+std::string					RequestHTTP::getHost()		{ return (_host);	};
 
 // Private
 void RequestHTTP::parseKeyword(std::string line)
 {
-	if (line.find("Accept:") != std::string::npos)
-			_accept = split(split(line, ' ')[1], ',');
-	if (line.find("Host:") != std::string::npos)	
-		_host = split(line, ' ')[1];
 	if (str_toupper(line).find("GET") != std::string::npos 
 		|| str_toupper(line).find("POST") != std::string::npos
 		|| str_toupper(line).find("DELETE") != std::string::npos)
-			_method = split(line, ' ')[0];
+		{
+			std::vector<std::string> tmp = split(line, ' ');
+			_method = tmp[0];
+			_file = tmp[1];
+		}
+	else if (line.find("Accept:") != std::string::npos)
+			_accept = split(split(line, ' ')[1], ',');
+	else if (line.find("Host:") != std::string::npos)	
+		_host = split(line, ' ')[1];
 }
 
 std::string RequestHTTP::str_toupper( std::string s )

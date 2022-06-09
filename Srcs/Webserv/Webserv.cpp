@@ -10,7 +10,7 @@ void Webserv::run()
 {
 	int ret = 0;
 
-	std::cout << YELLOW << "Démarrage...\n" << RESET;
+	std::cout << YELLOW << "Démarrage..." << RESET << std::endl;
 
 	init();
 	while (g_keepRunning)
@@ -56,17 +56,18 @@ void Webserv::launchServers()
 {
 	for (std::vector<Config>::iterator it = _serversConfig.begin(); it != _serversConfig.end(); it++)
 	{
-		std::cout << YELLOW << "Launching server \"" << it->get_server_name() << "\"...\n" << RESET;
+		std::cout << YELLOW << "Launching server \"" << it->get_server_name() << "\"..." << RESET << std::endl;
 		int serverSocket = initSocket(*it);
 		_serversFD.push_back(serverSocket);
 		FD_SET(serverSocket, &_currentSockets);
-		std::cout << GREEN << "Server successfuly launched.\n" << RESET;
+		std::cout << GREEN << "Server successfuly launched." << RESET << std::endl;
 	}
+	std::cout << std::endl;
 }
 
 void Webserv::closeServers()
 {
-	std::cout << YELLOW << "\nShutting down server...\n" << RESET;
+	std::cout << YELLOW << "\nShutting down server..." << RESET << std::endl;
 	for (std::vector<int>::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
 		close(*it);
 }
@@ -154,25 +155,25 @@ void Webserv::handleRead( int clientFD )
 		return ;
 	else
 	{
-		std::cout << GREEN << "REQUEST :\n" << RESET;
-
-		std::string		requestedFile = findFileRequested(request);
+		std::cout << GREEN << "INCOMING DATA :" << RESET << std::endl;
 		
 		RequestHTTP		parsedRequest(request);
 		Config			serverConfig = getServerConfig(parsedRequest.getHost());
 		ResponseHTTP	response(serverConfig, parsedRequest);
 
-		std::cout	<< "Host : " << parsedRequest.getHost() << std::endl << "Method : " << parsedRequest.getMethod() << std::endl
-					<< "File : " << requestedFile << std::endl;
+		std::cout	<< "Method : "	<< parsedRequest.getMethod() << std::endl
+					<< "Host : "	<< parsedRequest.getHost()	 << std::endl
+					<< "File : "	<< parsedRequest.getFile()	 << std::endl;
 
-		if (parsedRequest.getMethod() == "GET" && requestedFile.size() == 1)
-			response.GET("index.html");
-		else if (parsedRequest.getMethod() == "GET")
-			response.GET(requestedFile + ".html");
+		if (parsedRequest.getMethod() == "GET")
+			response.GET(parsedRequest.getFile() + ".html");
 		/* else if (method == "POST")
 			response.POST(requestedFile + "html"); */
 
-		write(clientFD, response.getResponseHTTP().c_str(), response.getResponseHTTP().size());
+		if (write(clientFD, response.getResponseHTTP().c_str(), response.getResponseHTTP().size()) == -1)
+			std::cerr << RED << "Coulnd't respond to the client." << RESET << std::endl;
+		else
+			std::cout	<< "Return Code : " << response.getStatusCode() << std::endl << std::endl;
 	}
 }
 
@@ -199,19 +200,4 @@ Config & Webserv::getServerConfig( std::string host )
 			return (*it);
 	}
 	throw (std::logic_error("Error: Server Config Not Found"));
-}
-
-std::string Webserv::findFileRequested( char * request )
-{
-	char *		cpy;
-	std::string ret;
-
-	cpy = (char *) malloc(sizeof(char) * strlen(request) + 1);
-	strcpy(cpy, request);
-
-	ret = strtok(cpy, " ");
-	ret = strtok(NULL, " ");
-
-	delete cpy;
-	return (ret);
 }

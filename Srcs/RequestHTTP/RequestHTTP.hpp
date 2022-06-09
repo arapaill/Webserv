@@ -9,11 +9,16 @@ class RequestHTTP
 		RequestHTTP( std::string request );
 		~RequestHTTP();
 
+		// Getters
+		std::string					getFile();
+		std::string					getBody();
 		std::string					getMethod();
 		std::vector<std::string>	getAccept();
 		std::string					getHost();
 
 	private:
+		std::string					_file;
+		std::string					_body;
 		std::string					_method;
 		std::vector<std::string>	_accept;
 		//std::vector<std::string	_accept-language;
