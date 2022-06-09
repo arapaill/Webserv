@@ -31,8 +31,12 @@ class Parser
         void    is_location(std::vector<std::string> info);
         void    is_return(std::string info, Config config);
         
-        Config  &get_config_file(void){return(_config_file);};
-        std::vector<Config> &get_vector_config(void) {return(_vector_Config);};
+        Config              & get_config_file(void){return(_config_file);};
+        std::vector<Config> & get_vector_config(void) {return(_vector_Config);};
+        std::string			& get_path_file(void) {return(_path_file);};
+
+        void	set_path_file(std::string path_file) { _path_file = path_file;};
+        
     private:
         Config  _config_file;
         std::string _path_file;

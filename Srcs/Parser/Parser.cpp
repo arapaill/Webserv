@@ -24,7 +24,7 @@ void    Parser::init_vector_string(void)
 	std::vector<std::string> vector_string;
 	int count = 0;
 
-	file.open("Configs/config.conf");
+	file.open("Configs/test.conf");
 	if(!file.is_open())
 	{
 		std::cout << "Cannot open config file\n";
