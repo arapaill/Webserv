@@ -66,14 +66,9 @@ void    Parser::is_listen(std::string info, Config &config)
             config.get_host().s_addr = inet_addr(host.c_str());
             //std::cout << config.get_host().s_addr << std::endl;
         }
-        if(isText(tmp) && tmp != "listen")
-        {
-           // std::cout << "TMP:" << tmp << std::endl;
-            config.set_host_name(tmp);
-            //std::cout << "host_name: " << config.get_network().get_host_name() << std::endl;
-        }
         tmp.clear();
 	}
+    //std::cout << config.get_host_name()  << std::endl;
 }
 
 void    Parser::is_server_name(std::string info, Config &config)
