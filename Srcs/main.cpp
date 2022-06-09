@@ -9,7 +9,7 @@ void INThandler(int signum)
 	g_keepRunning = false;
 }
 
-int main()
+int main(int argc, char * argv[])
 {
 	Webserv server;
 	Parser	parser;
@@ -21,6 +21,9 @@ int main()
 	sigIntHandler.sa_flags = 0;
 
 	sigaction(SIGINT, &sigIntHandler, NULL);
+
+	if (argc >= 2)
+		parser.set_path_file(argv[1]);
 
 	parser.parse();
 	server.setConfig(parser.get_vector_config());
