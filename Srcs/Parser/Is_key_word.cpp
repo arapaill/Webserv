@@ -1,20 +1,26 @@
 #include "../../Includes/headers.hpp"
 #include "Parser.hpp"
 
-std::vector<std::string> split(const std::string& s, char seperator)
+std::vector<std::string> split(const std::string & s, char separator)
 {
-	std::vector<std::string> output;
-	std::string::size_type prev_pos = 0, pos = 0;
+	std::vector<std::string>    ret;
+	std::string::size_type      prev_pos = 0, pos = 0;
 
-    while((pos = s.find(seperator, pos)) != std::string::npos)
+    while ((pos = s.find(separator, pos)) != std::string::npos)
     {
-        std::string substring( s.substr(prev_pos, pos-prev_pos) );
-        output.push_back(substring);
+        std::string substring = s.substr(prev_pos, pos-prev_pos);
+        ret.push_back(substring);
 
         prev_pos = ++pos;
     }
-    output.push_back(s.substr(prev_pos, pos-prev_pos)); // Last word
-    return output;
+
+    std::string last = s.substr(prev_pos);
+
+    if (last.size() > 0 && std::isalnum(last.back()) == 0)
+        last.resize(last.size() - 1);
+
+    ret.push_back(last);
+    return (ret);
 }
 
 bool isNumber(const std::string& str)

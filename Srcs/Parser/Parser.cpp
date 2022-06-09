@@ -1,10 +1,15 @@
 #include "Parser.hpp"
 
-Parser::Parser(void) {}
+Parser::Parser(void) 
+{
+	_path_file = "Configs/Config.conf"; // Default Path
+}
+
 Parser::Parser(Parser const & other)
 {
 	*this = other;
 }
+
 Parser::~Parser(void) {}
 
 Parser&			Parser::operator=(const Parser &rhs)
@@ -24,7 +29,7 @@ void    Parser::init_vector_string(void)
 	std::vector<std::string> vector_string;
 	int count = 0;
 
-	file.open("Configs/test.conf");
+	file.open(_path_file);
 	if(!file.is_open())
 	{
 		std::cout << "Cannot open config file\n";
