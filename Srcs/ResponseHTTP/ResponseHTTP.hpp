@@ -10,8 +10,13 @@ class ResponseHTTP
 		ResponseHTTP( Config config, RequestHTTP request );
 		~ResponseHTTP();
 
-		void		GET(std::string requested_filename);
+		void		GET(std::string filename);
+		void		POST(std::string filename);
+
+		// Getter
 		std::string	getResponseHTTP();
+		std::string getStatusCode();
+
 	private:
 		Config								_config;
 		RequestHTTP							_request;
@@ -22,16 +27,16 @@ class ResponseHTTP
 		std::map<std::string, std::string>	_directives;
 		std::map<int, std::string>			_statusCodes;
 
-
 		void		createStatusLine();
 		void		createHeaders();
+
+		// Inits
 		void		initDirectives();
 		void		initStatusCode();
-		std::string generateStatusCode(int statusCode);
-
-		void 		openFile(std::string requested_file);
 		
 		// Utils
+		void 		generateBody(std::string filename);
+		std::string generateStatusCode(int statusCode);
 		std::string	getDate(void);
 };
 

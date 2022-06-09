@@ -9,9 +9,25 @@ ResponseHTTP::ResponseHTTP(Config config, RequestHTTP request) : _config(config)
 
 ResponseHTTP::~ResponseHTTP() {};
 
-void ResponseHTTP::GET(std::string requested_filename)
-{
-	openFile(requested_filename);
+void ResponseHTTP::GET(std::string filename)
+{	
+	/* Pour les CGI
+	** if (_request.getFile() == "/CGI_folder")
+	** 		my_cgi_function(); (Mets le résultat de l'éxecution du programme dans la variable _body)
+	** else */
+	generateBody(filename);
+
+	_directives["Date"] = getDate();
+	_directives["Content-Type"] = "text/html";
+	_directives["Content-Length"] = std::to_string(_body.size());
+
+	createStatusLine();
+	createHeaders();
+}
+
+void ResponseHTTP::POST(std::string filename)
+{	
+	generateBody(filename);
 
 	_directives["Date"] = getDate();
 	_directives["Content-Type"] = "text/html";
@@ -22,6 +38,7 @@ void ResponseHTTP::GET(std::string requested_filename)
 }
 
 std::string ResponseHTTP::getResponseHTTP() { return (_statusLine + _headers + _body); }
+std::string ResponseHTTP::getStatusCode() { return (_statusCode); }
 
 // Private
 void ResponseHTTP::initDirectives()
@@ -97,7 +114,6 @@ void ResponseHTTP::initStatusCode()
 
 std::string ResponseHTTP::generateStatusCode(int statusCode)
 {
-	std::cout << "Return code : " << std::to_string(statusCode) + " " + _statusCodes[statusCode] << std::endl;
 	return (std::to_string(statusCode) + " " + _statusCodes[statusCode]);
 }
 
@@ -118,10 +134,12 @@ void ResponseHTTP::createHeaders()
 	_headers += "\n";
 }
 
-void ResponseHTTP::openFile(std::string requested_filename)
+void ResponseHTTP::generateBody(std::string filename)
 {
-	std::ifstream		requested_file("Configs/" + _config.get_root() + "/" + requested_filename);
-	//std::ifstream		requested_file("HTML/" + requested_filename);
+	if (filename == "/.html")
+		filename = "index.html";
+
+	std::ifstream		requested_file("Configs/" + _config.get_root() + "/" + filename);
 	std::stringstream	buffer;
 
 	if (requested_file.is_open())
