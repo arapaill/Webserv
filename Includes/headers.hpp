@@ -1,6 +1,7 @@
 #ifndef HEADERS_HPP
 # define HEADERS_HPP
 
+# include <algorithm>
 # include <sys/types.h>
 # include <sys/socket.h>
 # include <cstring>
@@ -25,7 +26,7 @@
 # include "../Srcs/Parser/Parser.hpp"
 # include "Config.hpp"
 
-std::vector<std::string> split(const std::string & s, char seperator);
+std::vector<std::string> split(const std::string & s, char separator);
 
 //* COLORS
 # define RED "\033[31m"
