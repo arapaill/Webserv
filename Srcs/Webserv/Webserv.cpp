@@ -18,7 +18,7 @@ void Webserv::run()
 		_readySockets = _currentSockets;
 
 		ret = select(FD_SETSIZE, &_readySockets, NULL, NULL, NULL);
-	
+
 		if (ret < 0) {
 			if (g_keepRunning == false)
 				continue ;
@@ -41,7 +41,6 @@ void Webserv::run()
 	}
 	closeServers();
 }
-
 
 void Webserv::setConfig( std::vector<Config> & configs ) { _serversConfig = configs; };
 
@@ -145,7 +144,6 @@ void Webserv::handleRead( int clientFD )
 {
 	char			request[BUFFER_SIZE + 1] = {0};
 	ssize_t			ret = recv(clientFD, request, BUFFER_SIZE, 0);
-	Config			serverConfig = getServerConfig(findHost(request));
 
 	if (ret == -1)
 	{
@@ -158,19 +156,21 @@ void Webserv::handleRead( int clientFD )
 	{
 		std::cout << GREEN << "REQUEST :\n" << RESET;
 
-		std::string		method = findMethod(request);
 		std::string		requestedFile = findFileRequested(request);
 		
 		RequestHTTP		parsedRequest(request);
+		Config			serverConfig = getServerConfig(parsedRequest.getHost());
 		ResponseHTTP	response(serverConfig, parsedRequest);
 
-		std::cout	<< "Host : " << findHost(request) << std::endl << "Method : " << method << std::endl
-					<< "File Requested : " << requestedFile << std::endl;
+		std::cout	<< "Host : " << parsedRequest.getHost() << std::endl << "Method : " << parsedRequest.getMethod() << std::endl
+					<< "File : " << requestedFile << std::endl;
 
-		if (method == "GET" && requestedFile.size() == 1)
+		if (parsedRequest.getMethod() == "GET" && requestedFile.size() == 1)
 			response.GET("index.html");
-		else if (method == "GET")
+		else if (parsedRequest.getMethod() == "GET")
 			response.GET(requestedFile + ".html");
+		/* else if (method == "POST")
+			response.POST(requestedFile + "html"); */
 
 		write(clientFD, response.getResponseHTTP().c_str(), response.getResponseHTTP().size());
 	}
@@ -201,19 +201,6 @@ Config & Webserv::getServerConfig( std::string host )
 	throw (std::logic_error("Error: Server Config Not Found"));
 }
 
-std::string Webserv::findMethod( char * request )
-{
-	char *		cpy;
-	std::string ret;
-
-	cpy = (char *) malloc(sizeof(char) * strlen(request) + 1);
-	strcpy(cpy, request);
-	ret = strtok(cpy, " ");
-
-	delete cpy;
-	return (ret);
-}
-
 std::string Webserv::findFileRequested( char * request )
 {
 	char *		cpy;
@@ -227,20 +214,4 @@ std::string Webserv::findFileRequested( char * request )
 
 	delete cpy;
 	return (ret);
-}
-
-std::string Webserv::findHost( std::string request )
-{
-	size_t start, len;
-	size_t i = request.find("Host:");
-
-	start = i + 6;
-	len = 0;
-	while (request[i] != '\n')
-	{
-		i++;
-		len++;
-	}
-
-	return (request.substr(start, len - 7));
 }
