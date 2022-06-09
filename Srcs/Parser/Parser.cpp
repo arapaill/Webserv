@@ -123,12 +123,12 @@ void	Parser::init_config_file(void)
     _config_file.set_client_max_body_size(0);
     _config_file.set_cgi_pass(null);
     _config_file.set_alias(null);
-   // _config_file.get_location().erase(_config_file.get_location().begin, _config_file.get_location().end);
-    //_config_file.get_error_page().erase(_config_file.get_error_page().begin, _config_file.get_error_page().end);
+    _config_file.get_location().clear();
 	_config_file.get_host().s_addr = inet_addr("0.0.0.0");
 	_config_file.set_port(-1);
 	_config_file.set_host_name(null);
-   // _config_file.get_methods().erase(_config_file.get_methods().begin, _config_file.get_methods().end);
+    _config_file.get_methods().clear();
+    _config_file.get_return().clear();
 }
 
 void    Parser::parse(void)
