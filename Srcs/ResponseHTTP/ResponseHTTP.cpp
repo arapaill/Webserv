@@ -194,7 +194,7 @@ bool ResponseHTTP::isAllowedMethod(std::string method)
 
 	for (std::vector<std::string>::iterator it = configMethods.begin() ; it != configMethods.end() ; it++)
 	{
-		if (it == method)
+		if (*it == method)
 			return (true);
 	}
 
