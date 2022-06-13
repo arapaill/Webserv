@@ -9,15 +9,24 @@ ResponseHTTP::ResponseHTTP(Config config, RequestHTTP request) : _config(config)
 
 ResponseHTTP::~ResponseHTTP() {};
 
-void ResponseHTTP::GET(std::string filename)
+void ResponseHTTP::GET(std::string path)
 {	
+	_directives["Date"] = getDate();
+
+	if (!isAllowedMethod("GET"))
+	{
+		_statusCode = generateStatusCode(405);
+		createStatusLine();
+		createHeaders();
+		return ;
+	}
+
 	/* Pour les CGI
 	** if (_request.getFile() == "/CGI_folder")
 	** 		my_cgi_function(); (Mets le résultat de l'éxecution du programme dans la variable _body)
 	** else */
-	generateBody(filename);
+	generateBody(path);
 
-	_directives["Date"] = getDate();
 	_directives["Content-Type"] = "text/html";
 	_directives["Content-Length"] = std::to_string(_body.size());
 
@@ -25,11 +34,20 @@ void ResponseHTTP::GET(std::string filename)
 	createHeaders();
 }
 
-void ResponseHTTP::POST(std::string filename)
+void ResponseHTTP::POST(std::string path)
 {	
-	//generateBody(filename);
-
 	_directives["Date"] = getDate();
+
+	//generateBody(path);
+
+	if (!isAllowedMethod("POST"))
+	{
+		_statusCode = generateStatusCode(405);
+		createStatusLine();
+		createHeaders();
+		return ;
+	}
+
 	_directives["Content-Type"] = "text/html";
 	_directives["Content-Length"] = std::to_string(_body.size());
 
@@ -136,12 +154,12 @@ void ResponseHTTP::createHeaders()
 	_headers += "\n";
 }
 
-void ResponseHTTP::generateBody(std::string filename)
+void ResponseHTTP::generateBody(std::string path)
 {
-	if (filename == "/.html")
-		filename = "index.html";
+	if (path == "/.html")
+		path = "index.html";
 
-	std::ifstream		requested_file("Configs/" + _config.get_root() + "/" + filename);
+	std::ifstream		requested_file("Configs/" + _config.get_root() + "/" + path);
 	std::stringstream	buffer;
 
 	if (requested_file.is_open())
@@ -169,3 +187,39 @@ std::string	ResponseHTTP::getDate(void)
 	strftime(buffer, 100, "%a, %d %b %Y %H:%M:%S GMT", tm);
 	return (std::string(buffer));
 }
+
+bool ResponseHTTP::isAllowedMethod(std::string method)
+{
+	std::vector<std::string> configMethods	= _config.get_methods();
+
+	for (std::vector<std::string>::iterator it = configMethods.begin() ; it != configMethods.end() ; it++)
+	{
+		if (it == method)
+			return (true);
+	}
+
+	return (false);
+}
+
+/* std::string ResponseHTTP::getAllowedContentType(void)
+{
+	std::vector<std::string> requestAccept	= _request.getAccept();
+	std::vector<std::string> configAccept	= _config.getContentType();
+
+	std::string ret;
+
+	for (std::vector<std::string>::iterator it1 = requestAccept.begin() ; it1 != requestAccept.end() ; it1++)
+	{
+		for (std::vector<std::string>::iterator it2 = configAccept.begin() ; it2 != configAccept.end() ; it2++)
+		{
+			if (*it1 == *it2)
+			{
+				ret += *it1;
+				if (it + 1 != requestAccept.end())
+					ret += ",";
+			}
+		}
+	}
+
+	return (ret);
+} */

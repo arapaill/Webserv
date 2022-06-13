@@ -38,6 +38,9 @@ class ResponseHTTP
 		void 		generateBody(std::string filename);
 		std::string generateStatusCode(int statusCode);
 		std::string	getDate(void);
+		std::string getAllowedContentType(void);
+		bool		isAllowedMethod(std::string method);
+
 };
 
 #endif
