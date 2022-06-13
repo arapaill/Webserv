@@ -13,7 +13,7 @@ void ResponseHTTP::GET(std::string path)
 {	
 	_directives["Date"] = getDate();
 
-	if (!isAllowedMethod("GET"))
+	if (!isAllowedMethod("GET") || !isAllowedMethod("get"))
 	{
 		_statusCode = generateStatusCode(405);
 		createStatusLine();
@@ -191,6 +191,9 @@ std::string	ResponseHTTP::getDate(void)
 bool ResponseHTTP::isAllowedMethod(std::string method)
 {
 	std::vector<std::string> configMethods	= _config.get_methods();
+
+	if (configMethods.size() == 0)
+		return (true);
 
 	for (std::vector<std::string>::iterator it = configMethods.begin() ; it != configMethods.end() ; it++)
 	{
