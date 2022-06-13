@@ -29,7 +29,7 @@ void RequestHTTP::parseKeyword(std::string line)
 		|| str_toupper(line).find("DELETE") != std::string::npos)
 		{
 			std::vector<std::string> tmp = split(line, ' ');
-			_method = tmp[0];
+			_method = str_toupper(tmp[0]);
 			_file = tmp[1];
 		}
 	else if (line.find("Accept:") != std::string::npos)

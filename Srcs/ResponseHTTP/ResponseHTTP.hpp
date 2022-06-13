@@ -10,8 +10,9 @@ class ResponseHTTP
 		ResponseHTTP( Config config, RequestHTTP request );
 		~ResponseHTTP();
 
-		void		GET(std::string filename);
-		void		POST(std::string filename);
+		void		GET( std::string path );
+		void		POST( std::string path );
+		void		DELETE( std::string path );
 
 		// Getter
 		std::string	getResponseHTTP();
@@ -35,11 +36,13 @@ class ResponseHTTP
 		void		initStatusCode();
 		
 		// Utils
-		void 		generateBody(std::string filename);
-		std::string generateStatusCode(int statusCode);
-		std::string	getDate(void);
-		std::string getAllowedContentType(void);
-		bool		isAllowedMethod(std::string method);
+		void 						generateBody( std::string filename );
+		std::string 				generateStatusCode( int statusCode );
+		std::string					getDate( void );
+		std::vector<std::string>	getAllowedContentType( void );
+		bool						isAllowedMethod( std::string method );
+		void 						deleteFile(std::string path);
+
 
 };
 

@@ -148,7 +148,7 @@ void Webserv::handleRead( int clientFD )
 
 	if (ret == -1)
 	{
-		std::cerr << "Error: recv() failed\n";
+		std::cerr << RED << "Error: recv() failed" << RESET << std::endl;
 		return ;
 	}
 	else if (ret == 0)
@@ -169,6 +169,8 @@ void Webserv::handleRead( int clientFD )
 			response.GET(parsedRequest.getFile() + ".html");
 		else if (parsedRequest.getMethod() == "POST")
 			response.POST(parsedRequest.getFile());
+		else if (parsedRequest.getMethod() == "DELETE")
+			response.DELETE(parsedRequest.getFile());
 
 		if (write(clientFD, response.getResponseHTTP().c_str(), response.getResponseHTTP().size()) == -1)
 			std::cerr << RED << "Coulnd't respond to the client." << RESET << std::endl;

@@ -13,7 +13,7 @@ void ResponseHTTP::GET(std::string path)
 {	
 	_directives["Date"] = getDate();
 
-	if (!isAllowedMethod("GET") || !isAllowedMethod("get"))
+	if (!isAllowedMethod("GET"))
 	{
 		_statusCode = generateStatusCode(405);
 		createStatusLine();
@@ -27,7 +27,6 @@ void ResponseHTTP::GET(std::string path)
 	** else */
 	generateBody(path);
 
-	_directives["Content-Type"] = "text/html";
 	_directives["Content-Length"] = std::to_string(_body.size());
 
 	createStatusLine();
@@ -56,6 +55,24 @@ void ResponseHTTP::POST(std::string path)
 	createStatusLine();
 	createHeaders();
 }
+
+void ResponseHTTP::DELETE(std::string path)
+{
+	_directives["Date"] = getDate();
+
+	if (!isAllowedMethod("DELETE"))
+	{
+		_statusCode = generateStatusCode(405);
+		createStatusLine();
+		createHeaders();
+		return ;
+	}
+
+	deleteFile(path);	
+	createStatusLine();
+	createHeaders();
+}
+
 
 std::string ResponseHTTP::getResponseHTTP() { return (_statusLine + _headers + _body); }
 std::string ResponseHTTP::getStatusCode() { return (_statusCode); }
@@ -139,18 +156,23 @@ std::string ResponseHTTP::generateStatusCode(int statusCode)
 
 void ResponseHTTP::createStatusLine()
 {
-	_statusLine = "HTTP/1.1 "; // HTTP Version
-	_statusLine += _statusCode; // Status Code
-	_statusLine += "\n"; // Fin de Status Line
+	_statusLine = "HTTP/1.1 ";
+	_statusLine += _statusCode;
+	_statusLine += "\n";
 }
 
 void ResponseHTTP::createHeaders()
 {
 	_headers += "Date: "			+ _directives["Date"] + "\n";
 	_headers += "Server: "			+ _directives["Server"] + "\n";
-	_headers += "Last-Modified: "	+ _directives["Last-Modified"] + "\n";
-	_headers += "Content-Length: "	+ _directives["Content-Length"] + "\n";
-	_headers += "Content-Type: "	+ _directives["Content-Type"] + "\n";
+
+	if (_directives["Last-Modified"] != "")
+		_headers += "Last-Modified: "	+ _directives["Last-Modified"] + "\n"; // Sans doute trop compliqué à implémenter
+	if (_directives["Content-Length"] != "")
+		_headers += "Content-Length: "	+ _directives["Content-Length"] + "\n";
+	if (_directives["Content-Type"] != "")
+		_headers += "Content-Type: "	+ _directives["Content-Type"] + "\n";
+
 	_headers += "\n";
 }
 
@@ -161,6 +183,12 @@ void ResponseHTTP::generateBody(std::string path)
 
 	std::ifstream		requested_file("Configs/" + _config.get_root() + "/" + path);
 	std::stringstream	buffer;
+
+/* 	std::string ext = split(path, '.')[1];  // Erreur possible si le path contient des . (Ex: my.page.html)
+	std::vector<std::string> allowedContentType = getAllowedContentType();
+	for (std::vector<std::string>::iterator it = allowedContentType.begin() ; it != allowedContentType.end() ; it++)
+		if (*it == ext)
+			_directives["Content-Type"] = ext; */
 
 	if (requested_file.is_open())
 	{
@@ -175,6 +203,30 @@ void ResponseHTTP::generateBody(std::string path)
 		_body = "<!doctype html><html><head><title>404</title></head><body><p><strong>Error : </strong>404 Not Found.</p></body></html>";
 	}
 }
+
+void ResponseHTTP::deleteFile(std::string path)
+{
+	if (path == "/.html")
+		path = "index.html";
+
+	std::string	s		= "Configs/" + _config.get_root() + "/" + path;
+	char *		c_str	= &s[0];
+
+	if (std::remove(c_str) != 0)
+	{
+		if (errno == ENOENT)
+		{
+			_statusCode = generateStatusCode(204);
+			return ;
+		}
+	}
+
+	_statusCode = generateStatusCode(200);
+	_body = "<html><body><h1>File deleted.</h1></body></html>";
+	_directives["Content-Length"] = std::to_string(_body.size());
+	_directives["Content-Type"] = "text/html";
+}
+
 
 std::string	ResponseHTTP::getDate(void)
 {
@@ -204,23 +256,19 @@ bool ResponseHTTP::isAllowedMethod(std::string method)
 	return (false);
 }
 
-/* std::string ResponseHTTP::getAllowedContentType(void)
+/* std::vector<std::string> ResponseHTTP::getAllowedContentType(void)
 {
 	std::vector<std::string> requestAccept	= _request.getAccept();
 	std::vector<std::string> configAccept	= _config.getContentType();
 
-	std::string ret;
+	std::vector<std::string> ret;
 
 	for (std::vector<std::string>::iterator it1 = requestAccept.begin() ; it1 != requestAccept.end() ; it1++)
 	{
 		for (std::vector<std::string>::iterator it2 = configAccept.begin() ; it2 != configAccept.end() ; it2++)
 		{
 			if (*it1 == *it2)
-			{
-				ret += *it1;
-				if (it + 1 != requestAccept.end())
-					ret += ",";
-			}
+				ret.push(*it);
 		}
 	}
 
