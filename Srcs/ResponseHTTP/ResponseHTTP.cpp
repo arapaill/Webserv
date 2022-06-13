@@ -25,10 +25,8 @@ void ResponseHTTP::GET(std::string path)
 	** if (_request.getFile() == "/CGI_folder")
 	** 		my_cgi_function(); (Mets le résultat de l'éxecution du programme dans la variable _body)
 	** else */
+
 	generateBody(path);
-
-	_directives["Content-Length"] = std::to_string(_body.size());
-
 	createStatusLine();
 	createHeaders();
 }
@@ -37,8 +35,6 @@ void ResponseHTTP::POST(std::string path)
 {	
 	_directives["Date"] = getDate();
 
-	//generateBody(path);
-
 	if (!isAllowedMethod("POST"))
 	{
 		_statusCode = generateStatusCode(405);
@@ -46,9 +42,6 @@ void ResponseHTTP::POST(std::string path)
 		createHeaders();
 		return ;
 	}
-
-	_directives["Content-Type"] = "text/html";
-	_directives["Content-Length"] = std::to_string(_body.size());
 
 	_statusCode = generateStatusCode(501);
 
@@ -196,11 +189,14 @@ void ResponseHTTP::generateBody(std::string path)
 		buffer << requested_file.rdbuf();
 		requested_file.close();
 		_body = buffer.str();
+		_directives["Content-Length"] = std::to_string(_body.size());
 	}
 	else
 	{
 		_statusCode = generateStatusCode(404);
+		_directives["Content-Type"] = "text/html";
 		_body = "<!doctype html><html><head><title>404</title></head><body><p><strong>Error : </strong>404 Not Found.</p></body></html>";
+		_directives["Content-Length"] = std::to_string(_body.size());
 	}
 }
 
