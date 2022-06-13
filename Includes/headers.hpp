@@ -2,26 +2,27 @@
 # define HEADERS_HPP
 
 # include <algorithm>
+# include <arpa/inet.h>
+# include <cstring>
+# include <cstdio>
+# include <errno.h>
+# include <fstream>
+# include <fcntl.h>
+# include <iostream>
+# include <map>
+# include <netinet/in.h>
+# include <unistd.h>
 # include <sys/types.h>
 # include <sys/socket.h>
-# include <cstring>
-# include <iostream>
 # include <string>
-# include <unistd.h>
 # include <stdio.h>
 # include <stdlib.h>
-# include <netinet/in.h>
-# include <arpa/inet.h>
-# include <fstream>
-# include <errno.h>
 # include <sstream>
-# include <fcntl.h>
 # include <sys/epoll.h>
-# include <vector>
 # include <signal.h>
-# include <map>
 # include <sys/select.h>
 # include <sys/time.h>
+# include <vector>
 
 # include "../Srcs/Parser/Parser.hpp"
 # include "Config.hpp"
