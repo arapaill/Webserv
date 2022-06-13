@@ -56,18 +56,18 @@ void Webserv::launchServers()
 {
 	for (std::vector<Config>::iterator it = _serversConfig.begin(); it != _serversConfig.end(); it++)
 	{
-		std::cout << YELLOW << "Launching server \"" << it->get_server_name() << "\"..." << RESET << std::endl;
+		std::cout << YELLOW << "Launching server « " << it->get_server_name() << " »..." << RESET << std::endl;
 		int serverSocket = initSocket(*it);
 		_serversFD.push_back(serverSocket);
 		FD_SET(serverSocket, &_currentSockets);
-		std::cout << GREEN << "Server successfuly launched." << RESET << std::endl;
+		std::cout << GREEN << "Server successfuly launched. Listening on « " << it->get_host_name() << ":" << std::to_string(it->get_port()) << " »." << RESET << std::endl;
 	}
 	std::cout << std::endl;
 }
 
 void Webserv::closeServers()
 {
-	std::cout << YELLOW << "\nShutting down server..." << RESET << std::endl;
+	std::cout << YELLOW << "\nShutting down server(s)..." << RESET << std::endl;
 	for (std::vector<int>::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
 		close(*it);
 }
