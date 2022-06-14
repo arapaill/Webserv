@@ -23,6 +23,7 @@
 # include <sys/select.h>
 # include <sys/time.h>
 # include <vector>
+# include <locale>
 
 # include "../Srcs/Parser/Parser.hpp"
 # include "Config.hpp"

@@ -28,7 +28,6 @@ class Parser
         void    is_fastcgi_param(std::string info, Config config);
         void    is_alias(std::string info, Config config);
         void    is_allow_methods(std::string info, Config config);
-        void    is_allow_content(std::string info, Config config);
         void    is_location(std::vector<std::string> info);
         void    is_return(std::string info, Config config);
         
