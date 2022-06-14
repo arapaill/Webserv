@@ -83,6 +83,7 @@ void    Parser::is_server_name(std::string info, Config &config)
     std::string tmp;
     cmd = split(info, ' ');
 
+   // std::cout << "INFO: " << info << std::endl;
     if(cmd.size() < 2)
     {
         std::cout << "not enough directives for server_name\n";

@@ -24,8 +24,9 @@ Parser&			Parser::operator=(const Parser &rhs)
 void    Parser::init_vector_string(void)
 {
 	std::ifstream file;
+    std::string peek;
 	std::string string_file;
-	std::string concat_string_file;
+	
 	std::vector<std::string> vector_string;
 	int count = 0;
 
@@ -35,33 +36,40 @@ void    Parser::init_vector_string(void)
 		std::cout << "Cannot open config file\n";
 		exit(0);
 	}
-	while(file)
+	while(!file.eof())
 	{
-		file >> string_file;
-		concat_string_file += string_file;
-		concat_string_file += " ";
-		if (concat_string_file.find('{')  != std::string::npos)
-			count++;
-		if (concat_string_file.find('}') != std::string::npos)
-			count--;
-		if (concat_string_file.find(';') != std::string::npos
-			|| concat_string_file.find('{') != std::string::npos
-			|| concat_string_file.find('}') != std::string::npos)
+        std::getline(file, string_file);
+        string_file.erase(std::remove(string_file.begin(), string_file.end(), '\t'), string_file.end());
+        string_file.erase(std::remove(string_file.end(), string_file.begin(), '\t'), string_file.begin());
+		if (string_file.find('{')  != std::string::npos)
+            count++;
+		if (string_file.find('}') != std::string::npos)
+            count--;
+        //if(string_file != ';')
+        //std::cout << string_file << std::endl;
+           //std::cout << "[ " << string_file.back() << " ]" <<std::endl;
+		if (string_file.find(';') != std::string::npos
+			|| string_file.find('{') != std::string::npos
+			|| string_file.find('}') != std::string::npos)
 		{
-			if (concat_string_file.find(';') != std::string::npos)
-				concat_string_file.resize(concat_string_file.size() - 2);
-			else
-				concat_string_file.resize(concat_string_file.size() - 1);
-			//std::cout << concat_string_file << std::endl;
-			vector_string.push_back(concat_string_file);
+            if(string_file.find(';') != std::string::npos)
+                string_file.resize(string_file.size() - 2);
+			vector_string.push_back(string_file);
+            //std::cout << string_file << std::endl;
 			if (count == 0)
 			{
 				_allblock.push_back(vector_string);
 				vector_string.clear();
 			}
-			concat_string_file.clear();
+			string_file.clear();
 		}
+        string_file.clear();
 	}
+    if(count != 0)
+    {
+        std::cout << RED << "Error: config file: bracket numbers not matching\n" << RESET;
+        exit(1);
+    }
 }
 
 void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
