@@ -24,9 +24,8 @@ Parser&			Parser::operator=(const Parser &rhs)
 void    Parser::init_vector_string(void)
 {
 	std::ifstream file;
-    std::string peek;
+	std::string last;
 	std::string string_file;
-	
 	std::vector<std::string> vector_string;
 	int count = 0;
 
@@ -38,45 +37,56 @@ void    Parser::init_vector_string(void)
 	}
 	while(!file.eof())
 	{
-        std::getline(file, string_file);
-        string_file.erase(std::remove(string_file.begin(), string_file.end(), '\t'), string_file.end());
-        string_file.erase(std::remove(string_file.end(), string_file.begin(), '\t'), string_file.begin());
-		if (string_file.find('{')  != std::string::npos)
-            count++;
-		if (string_file.find('}') != std::string::npos)
-            count--;
-        //if(string_file != ';')
-        //std::cout << string_file << std::endl;
-           //std::cout << "[ " << string_file.back() << " ]" <<std::endl;
-		if (string_file.find(';') != std::string::npos
-			|| string_file.find('{') != std::string::npos
-			|| string_file.find('}') != std::string::npos)
+		std::getline(file, string_file);
+		size_t i = 0;
+		for (std::string::iterator it = string_file.begin() ; it != string_file.end() ; it++)
 		{
-            if(string_file.find(';') != std::string::npos)
-                string_file.resize(string_file.size() - 2);
-			vector_string.push_back(string_file);
-            //std::cout << string_file << std::endl;
-			if (count == 0)
-			{
-				_allblock.push_back(vector_string);
-				vector_string.clear();
-			}
-			string_file.clear();
+			if (!isspace(*it))
+				break ;
+			i++;
 		}
-        string_file.clear();
+		string_file = string_file.substr(i);
+		if(string_file.size() <= 1 && string_file.front() == 0)
+		{
+			string_file.clear();
+			continue;
+		}
+		if (isspace(string_file.back()))
+			string_file.resize(string_file.size() - 1);
+		if (string_file.find('{')  != std::string::npos)
+			count++;
+		if (string_file.find('}') != std::string::npos)
+			count--;
+		if(string_file.back() != ';' && string_file.back() != '}' && string_file.back() != '{')
+		{
+			std::cout << RED << "Error: config file: line must finnish with ;, { or }\n" << RESET;
+			std::cout << RED << "line: " << string_file << "\n" << RESET;
+			exit(1);
+		}
+		if(string_file.back() == ';')
+			string_file.resize(string_file.size() - 1);
+
+		vector_string.push_back(string_file);
+		//std::cout << string_file << std::endl;
+		if (count == 0)
+		{
+			_allblock.push_back(vector_string);
+			vector_string.clear();
+		}
+		string_file.clear();
 	}
-    if(count != 0)
-    {
-        std::cout << RED << "Error: config file: bracket numbers not matching\n" << RESET;
-        exit(1);
-    }
+	if(count != 0)
+	{
+		std::cout << RED << "Error: config file: bracket numbers not matching\n" << RESET;
+		exit(1);
+	}
 }
 
 void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 {
 	std::string	info;
-    std::vector<std::string> vector_info;
-    
+	std::vector<std::string> vector_info;
+	
 	for(std::size_t i = 0; i != vector_string.size() && vector_string.at(i) != "}"; i++)
 	{
 		info = vector_string.at(i);
@@ -84,45 +94,39 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 			info.erase(info.find("#"));
 	   	//std::cout << "INFO:" << info << std::endl;
 		if (info.find("listen ") != std::string::npos)
-		{
-			//std::cout << "in listen \n";
 			is_listen(info, config);
-		}
 		else if (info.find("server_name ") != std::string::npos)
-        {
 			is_server_name(info, config);
-           // std::cout << config.get_server_name() << std::endl;
-        }
 		else if (info.find("root ") != std::string::npos)
 			is_root(info, config);
 		else if (info.find("index ") != std::string::npos)
 			is_index(info, config);
 		else if (info.find("autoindex ") != std::string::npos)
 			is_autoindex(info, config);
-        else if (info.find("location ") != std::string::npos)
-        {
-            vector_info.push_back(info);
-            while(info.find("}") == std::string::npos)
-            {
-                i++;
-                info = vector_string.at(i);
-                vector_info.push_back(info);
-            }
-            is_location(vector_info);
-        }
-	    else if (info.find("error_page ") != std ::string::npos)
+		else if (info.find("location ") != std::string::npos)
+		{
+			vector_info.push_back(info);
+			while(info.find("}") == std::string::npos)
+			{
+				i++;
+				info = vector_string.at(i);
+				vector_info.push_back(info);
+			}
+			is_location(vector_info);
+		}
+		else if (info.find("error_page ") != std ::string::npos)
 			is_error_page(info, config);
 		else if (info.find("client_max_body_size ") != std::string::npos)
 			is_client_max_body_size(info, config);
 		else if (info.find("fastcgi_param ") != std::string::npos)
 			is_fastcgi_param(info, config);
-        else if (info.find("alias ") != std::string::npos)
+		else if (info.find("alias ") != std::string::npos)
 			is_alias(info, config);
-        else if (info.find("allow_methods ") != std::string::npos)
+		else if (info.find("allow_methods ") != std::string::npos)
 			is_allow_methods(info, config);
-            else if (info.find("allow_content ") != std::string::npos)
+			else if (info.find("allow_content ") != std::string::npos)
 			is_allow_content(info, config);
-        else if (info.find("return ") != std ::string::npos)
+		else if (info.find("return ") != std ::string::npos)
 			is_return(info, config);
 	}
 }
@@ -132,17 +136,17 @@ void	Parser::init_config_file(void)
 	_config_file.get_root().clear();
 	_config_file.get_server_name().clear();
 	_config_file.get_index().clear();
-    _config_file.set_autoindex(false);
-    _config_file.set_client_max_body_size(0);
-    _config_file.set_cgi_pass("cgi_bin");
-    _config_file.get_alias().clear();
-    _config_file.get_location().clear();
+	_config_file.set_autoindex(false);
+	_config_file.set_client_max_body_size(0);
+	_config_file.set_cgi_pass("cgi_bin");
+	_config_file.get_alias().clear();
+	_config_file.get_location().clear();
 	_config_file.get_host().s_addr = inet_addr("0.0.0.0");
 	_config_file.set_port(-1);
 	_config_file.get_host_name().clear();
-    _config_file.get_methods().clear();
-    _config_file.get_content().clear();
-    _config_file.get_return().clear();
+	_config_file.get_methods().clear();
+	_config_file.get_content().clear();
+	_config_file.get_return().clear();
 }
 
 void    Parser::parse(void)
@@ -154,7 +158,7 @@ void    Parser::parse(void)
 		get_info(_allblock.at(i), _config_file);
 		_vector_Config.push_back(_config_file);
 	}
-    std::cout << _vector_Config.at(0).get_server_name() << std::endl;
+	std::cout << _vector_Config.at(0).get_server_name() << std::endl;
 }
 
 /*

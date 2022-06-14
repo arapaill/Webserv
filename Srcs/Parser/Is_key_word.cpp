@@ -13,12 +13,9 @@ std::vector<std::string> split(const std::string & s, char separator)
 
         prev_pos = ++pos;
     }
-
     std::string last = s.substr(prev_pos);
-
-    if (last.size() > 0 && std::isalnum(last.back()) == 0)
+    if (last.size() > 0 && isspace(last.back()))
         last.resize(last.size() - 1);
-
     ret.push_back(last);
     return (ret);
 }
@@ -83,7 +80,7 @@ void    Parser::is_server_name(std::string info, Config &config)
     std::string tmp;
     cmd = split(info, ' ');
 
-   // std::cout << "INFO: " << info << std::endl;
+  // std::cout << "INFO: " << info << std::endl;
     if(cmd.size() < 2)
     {
         std::cout << "not enough directives for server_name\n";
@@ -100,7 +97,7 @@ void    Parser::is_server_name(std::string info, Config &config)
         tmp = cmd.at(1);
     
     config.set_server_name(tmp);
-   // std::cout << config.get_server_name() << std::endl;
+   //std::cout << config.get_server_name() << std::endl;
 }
 
 void    Parser::is_root(std::string info, Config &config)
