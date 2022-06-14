@@ -177,11 +177,12 @@ void ResponseHTTP::generateBody(std::string path)
 	std::ifstream		requested_file("Configs/" + _config.get_root() + "/" + path);
 	std::stringstream	buffer;
 
-/* 	std::string ext = split(path, '.')[1];  // Erreur possible si le path contient des . (Ex: my.page.html)
-	std::vector<std::string> allowedContentType = getAllowedContentType();
-	for (std::vector<std::string>::iterator it = allowedContentType.begin() ; it != allowedContentType.end() ; it++)
-		if (*it == ext)
-			_directives["Content-Type"] = ext; */
+	std::string ext = path.substr(path.find_last_of('.') + 1);
+
+	if (isAllowedContentType(ext))
+		_directives["Content-Type"] = "text/" + ext;
+	else
+		_directives["Content-Type"] = "text/" + ext; // renvoie "html", devrait renvoyer "text/html"
 
 	if (requested_file.is_open())
 	{
@@ -252,21 +253,17 @@ bool ResponseHTTP::isAllowedMethod(std::string method)
 	return (false);
 }
 
-/* std::vector<std::string> ResponseHTTP::getAllowedContentType(void)
+bool ResponseHTTP::isAllowedContentType(std::string contentType)
 {
 	std::vector<std::string> requestAccept	= _request.getAccept();
-	std::vector<std::string> configAccept	= _config.getContentType();
-
-	std::vector<std::string> ret;
 
 	for (std::vector<std::string>::iterator it1 = requestAccept.begin() ; it1 != requestAccept.end() ; it1++)
 	{
-		for (std::vector<std::string>::iterator it2 = configAccept.begin() ; it2 != configAccept.end() ; it2++)
 		{
-			if (*it1 == *it2)
-				ret.push(*it);
+			if (*it1 == contentType)
+				return (true);
 		}
 	}
 
-	return (ret);
-} */
+	return (false);
+}

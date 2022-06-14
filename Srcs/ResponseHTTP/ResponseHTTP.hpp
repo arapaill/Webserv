@@ -36,12 +36,12 @@ class ResponseHTTP
 		void		initStatusCode();
 		
 		// Utils
-		void 						generateBody( std::string filename );
-		std::string 				generateStatusCode( int statusCode );
-		std::string					getDate( void );
-		std::vector<std::string>	getAllowedContentType( void );
-		bool						isAllowedMethod( std::string method );
-		void 						deleteFile(std::string path);
+		void 		generateBody( std::string filename );
+		std::string	generateStatusCode( int statusCode );
+		std::string	getDate( void );
+		bool		isAllowedContentType( std::string contentType );
+		bool		isAllowedMethod( std::string method );
+		void 		deleteFile(std::string path);
 
 
 };
