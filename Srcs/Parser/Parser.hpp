@@ -28,6 +28,7 @@ class Parser
         void    is_fastcgi_param(std::string info, Config config);
         void    is_alias(std::string info, Config config);
         void    is_allow_methods(std::string info, Config config);
+        void    is_allow_content(std::string info, Config config);
         void    is_location(std::vector<std::string> info);
         void    is_return(std::string info, Config config);
         
@@ -40,7 +41,6 @@ class Parser
     private:
         Config  _config_file;
         std::string _path_file;
-         //.conf file in a vector: 1 block
         std::vector<std::vector<std::string>> _allblock;;
         std::vector<Config> _vector_Config;
 };

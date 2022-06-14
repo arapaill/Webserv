@@ -226,6 +226,15 @@ void    Parser::is_allow_methods(std::string info, Config config)
         config.get_methods().push_back(cmd.at(i));
 }
 
+void    Parser::is_allow_content(std::string info, Config config)
+{
+    std::vector<std::string> cmd;
+    cmd = split(info, ' ');
+
+    for(int i = 1; i != cmd.size(); i++)
+        config.get_content().push_back(cmd.at(i));
+}
+
 void    Parser::is_location(std::vector<std::string> info)
 {
     std::string location_name;
