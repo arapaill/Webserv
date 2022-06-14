@@ -129,20 +129,19 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 
 void	Parser::init_config_file(void)
 {
-	std::string null = "NULL";
-
-	_config_file.set_root(null);
-	_config_file.set_server_name(null);
-	_config_file.set_index(null);
+	_config_file.get_root().clear();
+	_config_file.get_server_name().clear();
+	_config_file.get_index().clear();
     _config_file.set_autoindex(false);
     _config_file.set_client_max_body_size(0);
-    _config_file.set_cgi_pass(null);
-    _config_file.set_alias(null);
+    _config_file.set_cgi_pass("cgi_bin");
+    _config_file.get_alias().clear();
     _config_file.get_location().clear();
 	_config_file.get_host().s_addr = inet_addr("0.0.0.0");
 	_config_file.set_port(-1);
-	_config_file.set_host_name(null);
+	_config_file.get_host_name().clear();
     _config_file.get_methods().clear();
+    _config_file.get_content().clear();
     _config_file.get_return().clear();
 }
 
