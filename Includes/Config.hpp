@@ -48,7 +48,6 @@ class Config
 		std::string     				& get_cgi_pass(void) {return(_cgi_pass);};
 		std::string     				& get_alias(void) {return(_alias);};
 		std::vector<std::string> 		& get_methods(void) {return(_methods);};
-        std::vector<std::string> 		& get_content(void) {return(_content);};
 		std::map<int, std::string> 		& get_return(void) {return(_return);};
 
 	private: 
@@ -65,7 +64,6 @@ class Config
 		std::string                     _cgi_pass;
 		std::string						_alias;
 		std::vector<std::string>		_methods;
-        std::vector<std::string>		_content;
 		std::map<int, std::string>     	_return;
 };
 

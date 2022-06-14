@@ -124,8 +124,6 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 			is_alias(info, config);
 		else if (info.find("allow_methods ") != std::string::npos)
 			is_allow_methods(info, config);
-			else if (info.find("allow_content ") != std::string::npos)
-			is_allow_content(info, config);
 		else if (info.find("return ") != std ::string::npos)
 			is_return(info, config);
 	}
@@ -145,7 +143,6 @@ void	Parser::init_config_file(void)
 	_config_file.set_port(-1);
 	_config_file.get_host_name().clear();
 	_config_file.get_methods().clear();
-	_config_file.get_content().clear();
 	_config_file.get_return().clear();
 }
 
