@@ -13,6 +13,21 @@ RequestHTTP::RequestHTTP( std::string request )
 	}
 }
 
+RequestHTTP::RequestHTTP(RequestHTTP const & cpy)
+{
+	*this = cpy;
+};
+
+RequestHTTP & RequestHTTP::operator=(RequestHTTP const & rhs)
+{
+	_body = rhs._body;
+	_file = rhs._file;
+	_method = rhs._method;
+	_accept = rhs._accept;
+	_host = rhs._host;
+	return (*this);
+};
+
 RequestHTTP::~RequestHTTP() {};
 
 std::string					RequestHTTP::getFile()		{ return (_file);	};
