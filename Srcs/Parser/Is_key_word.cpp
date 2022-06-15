@@ -231,8 +231,8 @@ void    Parser::is_location(std::vector<std::string> info)
     std::vector<std::string> cmd;
     Config location_config;
 
-    for(int i = 0; i < info.size(); i++)
-        std::cout << info.at(i) << std::endl;
+    //for(int i = 0; i < info.size(); i++)
+      //  std::cout << info.at(i) << std::endl;
     cmd = split(info.at(0), ' ');
     location_name = cmd.at(1);
     info.erase(info.begin());
@@ -240,5 +240,5 @@ void    Parser::is_location(std::vector<std::string> info)
     
     //std::cout << location_name << std::endl;
     _config_file.get_location()[location_name] = location_config;
-    std::cout <<  _config_file.get_location().at(location_name).get_server_name() << std::endl;
+    //std::cout <<  _config_file.get_location().at(location_name).get_server_name() << std::endl;
 }

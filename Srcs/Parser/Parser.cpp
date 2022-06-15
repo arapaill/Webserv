@@ -105,7 +105,7 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 			is_autoindex(info, config);
 		else if (info.find("location ") != std::string::npos)
 		{
-            std::cout << vector_string.at(i) << std::endl;
+           // std::cout << vector_string.at(i) << std::endl;
 			vector_info.push_back(info);
 			while(info.find("}") == std::string::npos)
 			{
