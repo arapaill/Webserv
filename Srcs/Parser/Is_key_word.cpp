@@ -177,7 +177,7 @@ void    Parser::is_client_max_body_size(std::string info, Config &config)
     config.set_client_max_body_size(atoi(cmd.at(1).c_str()));
 }
 
-void    Parser::is_error_page(std::string info, Config config)
+void    Parser::is_error_page(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
     cmd = split(info, ' ');
@@ -186,7 +186,7 @@ void    Parser::is_error_page(std::string info, Config config)
    // std::cout << config.get_error_page()[atoi(cmd.at(1).c_str())];
 }
 
-void    Parser::is_return(std::string info, Config config)
+void    Parser::is_return(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
     cmd = split(info, ' ');
@@ -195,7 +195,7 @@ void    Parser::is_return(std::string info, Config config)
    // std::cout << config.get_error_page()[atoi(cmd.at(1).c_str())];
 }
 
-void    Parser::is_fastcgi_param(std::string info, Config config)
+void    Parser::is_fastcgi_param(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
     cmd = split(info, ' ');
@@ -203,7 +203,7 @@ void    Parser::is_fastcgi_param(std::string info, Config config)
     config.set_cgi_pass(cmd.at(1));
 }
 
-void    Parser::is_alias(std::string info, Config config)
+void    Parser::is_alias(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
     cmd = split(info, ' ');
@@ -216,13 +216,14 @@ void    Parser::is_alias(std::string info, Config config)
     config.set_alias(cmd.at(1));
 }
 
-void    Parser::is_allow_methods(std::string info, Config config)
+void    Parser::is_allow_methods(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
     cmd = split(info, ' ');
 
     for(int i = 1; i != cmd.size(); i++)
         config.get_methods().push_back(cmd.at(i));
+   // std::cout << config.get_methods().size() << std::endl;
 }
 
 void    Parser::is_location(std::vector<std::string> info)

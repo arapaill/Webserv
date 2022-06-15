@@ -126,9 +126,13 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 		else if (info.find("alias ") != std::string::npos)
 			is_alias(info, config);
 		else if (info.find("allow_methods ") != std::string::npos)
+        {
 			is_allow_methods(info, config);
+            //std::cout << config.get_location().rbegin()->second.get_methods().size() << std::endl;
+        }
 		else if (info.find("return ") != std ::string::npos)
 			is_return(info, config);
+        
         info.clear();
 	}
 }
@@ -159,7 +163,10 @@ void    Parser::parse(void)
 		get_info(_allblock.at(i), _config_file);
 		_vector_Config.push_back(_config_file);
 	}
-	std::cout << _vector_Config.at(0).get_server_name() << std::endl;
+	//std::cout << _vector_Config.at(0).get_server_name() << std::endl;
+    //std::cout <<  _vector_Config.at(0).get_location().begin()->second.get_server_name() << std::endl;
+    //std::cout <<  _vector_Config.at(0).get_location().rbegin()->second.get_server_name() << std::endl;
+    //std::cout <<  _vector_Config.at(0).get_location().rbegin()->second.get_methods().size() << std::endl;
 }
 
 /*
