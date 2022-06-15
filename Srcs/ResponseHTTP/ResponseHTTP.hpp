@@ -40,8 +40,11 @@ class ResponseHTTP
 		std::string	generateStatusCode( int statusCode );
 		std::string	getDate( void );
 		bool		isAllowedContentType( std::string contentType );
-		bool		isAllowedMethod( std::string method );
-		void 		deleteFile(std::string path);
+		bool		isAllowedMethod( std::string method, std::string path );
+		void 		deleteFile( std::string path );
+		std::string isThereLocation( std::string path );
+		Config 		getLocation( std::string index );
+
 
 
 };

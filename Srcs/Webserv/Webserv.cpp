@@ -166,7 +166,7 @@ void Webserv::handleRead( int clientFD )
 					<< "File : "	<< parsedRequest.getFile()	 << std::endl;
 
 		if (parsedRequest.getMethod() == "GET")
-			response.GET(parsedRequest.getFile() + ".html");
+			response.GET(parsedRequest.getFile());
 		else if (parsedRequest.getMethod() == "POST")
 			response.POST(parsedRequest.getFile());
 		else if (parsedRequest.getMethod() == "DELETE")
