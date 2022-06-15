@@ -64,14 +64,15 @@ void    Parser::is_listen(std::string info, Config &config)
 			    host = "127.0.0.1";
             else
 			    host = tmp;
-            config.set_host_name(host);
-            //std::cout << "HOST: " << host.c_str() << std::endl;
+            //config.set_host_name(host);
+           // std::cout << "HOST: " << host.c_str() << std::endl;
             config.get_host().s_addr = inet_addr(host.c_str());
             //std::cout << config.get_host().s_addr << std::endl;
         }
         tmp.clear();
 	}
     //std::cout << config.get_host_name()  << std::endl;
+  //  std::cout << config.get_port() << std::endl;
 }
 
 void    Parser::is_server_name(std::string info, Config &config)
@@ -83,12 +84,12 @@ void    Parser::is_server_name(std::string info, Config &config)
   // std::cout << "INFO: " << info << std::endl;
     if(cmd.size() < 2)
     {
-        std::cout << "not enough directives for server_name\n";
+        std::cout << RED << "not enough directives for server_name\n" << RESET;
         exit(1);
     }
     if(cmd.size() > 3)
     {
-        std::cout << "too much directives for server_name\n";
+        std::cout << RED << "too much directives for server_name\n" << RESET;
         exit(1);
     }
     if (cmd.size() == 3)
@@ -108,12 +109,12 @@ void    Parser::is_root(std::string info, Config &config)
 
     if(cmd.size() < 2)
     {
-        std::cout << "not enough directives for root\n";
+        std::cout << RED << "not enough directives for root\n" << RESET;
         exit(1);
     }
     if(cmd.size() > 2)
     {
-        std::cout << "too much directives for root\n";
+        std::cout << RED << "too much directives for root\n" << RESET;
         exit(1);
     }
     config.set_root(cmd.at(1));
@@ -127,12 +128,12 @@ void    Parser::is_index(std::string info, Config &config)
 
     if(cmd.size() < 2)
     {
-        std::cout << "not enough directives for index\n";
+        std::cout << RED << "not enough directives for index\n" << RESET;
         exit(1);
     }
     if(cmd.size() > 2)
     {
-        std::cout << "too much directives for index\n";
+        std::cout << RED << "too much directives for index\n" << RESET;
         exit(1);
     }
     config.set_index(cmd.at(1));
@@ -145,12 +146,12 @@ void    Parser::is_autoindex(std::string info, Config &config)
 
     if(cmd.size() < 2)
     {
-        std::cout << "not enough directives for autoindex\n";
+       std::cout << RED << "not enough directives for autoindex\n" << RESET;
         exit(1);
     }
     if(cmd.size() > 2)
     {
-        std::cout << "too much directives for autoindex\n";
+        std::cout << RED << "too much directives for autoindex\n" << RESET;
         exit(1);
     }
     if(cmd.at(1) == "On")
@@ -165,12 +166,12 @@ void    Parser::is_client_max_body_size(std::string info, Config &config)
     cmd = split(info, ' ');
      if(cmd.size() < 2)
     {
-        std::cout << "not enough directives for index\n";
+        std::cout << RED << "not enough directives for clien max body size\n" << RESET;
         exit(1);
     }
     if(cmd.size() > 2)
     {
-        std::cout << "too much directives for index\n";
+        std::cout << RED << "too much directives for client max body size\n" << RESET;
         exit(1);
     }
     config.set_client_max_body_size(atoi(cmd.at(1).c_str()));
@@ -209,7 +210,7 @@ void    Parser::is_alias(std::string info, Config config)
 
     if(cmd.size() < 2)
     {
-        std::cout << RED << "not enough directives for network\n" << RESET;
+        std::cout << RED << "not enough directives for alias\n" << RESET;
         exit(1);
     }
     config.set_alias(cmd.at(1));
@@ -230,6 +231,8 @@ void    Parser::is_location(std::vector<std::string> info)
     std::vector<std::string> cmd;
     Config location_config;
 
+    for(int i = 0; i < info.size(); i++)
+        std::cout << info.at(i) << std::endl;
     cmd = split(info.at(0), ' ');
     location_name = cmd.at(1);
     info.erase(info.begin());
@@ -237,5 +240,5 @@ void    Parser::is_location(std::vector<std::string> info)
     
     //std::cout << location_name << std::endl;
     _config_file.get_location()[location_name] = location_config;
-   // std::cout <<  _config_file.get_location().at(location_name).get_server_name() << std::endl;
+    std::cout <<  _config_file.get_location().at(location_name).get_server_name() << std::endl;
 }

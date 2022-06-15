@@ -105,6 +105,7 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 			is_autoindex(info, config);
 		else if (info.find("location ") != std::string::npos)
 		{
+            std::cout << vector_string.at(i) << std::endl;
 			vector_info.push_back(info);
 			while(info.find("}") == std::string::npos)
 			{
@@ -112,7 +113,9 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 				info = vector_string.at(i);
 				vector_info.push_back(info);
 			}
+           // std::cout << vector_string.at(i) << std::endl;
 			is_location(vector_info);
+            vector_info.clear();
 		}
 		else if (info.find("error_page ") != std ::string::npos)
 			is_error_page(info, config);
@@ -126,6 +129,7 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 			is_allow_methods(info, config);
 		else if (info.find("return ") != std ::string::npos)
 			is_return(info, config);
+        info.clear();
 	}
 }
 
