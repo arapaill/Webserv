@@ -15,11 +15,16 @@ class Config
 			this->_host = rhs._host;
 			this->_port = rhs._port;
 			this->_host_name = rhs._host_name;
-			_root = rhs._root;
-			_server_name = rhs._server_name;
-			_index = rhs._index;
-			_autoindex = rhs._autoindex;
-			_client_max_body_size = rhs._client_max_body_size;
+			this->_root = rhs._root;
+			this->_server_name = rhs._server_name;
+			this->_index = rhs._index;
+			this->_autoindex = rhs._autoindex;
+            this->_location = rhs._location;
+			this->_client_max_body_size = rhs._client_max_body_size;
+            this->_cgi_pass = rhs._cgi_pass;
+            this->_alias = rhs._alias;
+            this->_methods = rhs._methods;
+            this->_return = rhs._return;
 			return *this;
 		}
 
