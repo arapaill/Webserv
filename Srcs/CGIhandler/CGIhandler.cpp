@@ -72,7 +72,7 @@ void CGIhandler::init_env()
 	}
 	
     //this->_env["AUTH_TYPE"] = "";											//SHOULD
-    this->_env["CONTENT LENGTH"] = "";										//MUST
+    this->_env["CONTENT LENGTH"] = "0";										//MUST
     this->_env["CONTENT_TYPE"] = content_type;								//MUST
     this->_env["GATEWAY_INTERFACE"] = "CGI/1.1";							//MUST
     //this->_env["HTTP_ACCEPT"] = ;											//MAY
