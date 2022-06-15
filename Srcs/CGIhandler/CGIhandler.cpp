@@ -50,19 +50,7 @@ void CGIhandler::init_env()
 
 	std::string::size_type pos = this->_path.find('?');
 	std::string::size_type pos2 = this->_path.find('/');
-	while (pos2 != std::string::npos) //find the last occurence of '/' before the '?' so we can find the script_name
-	{
-		std::string::size_type tmp = pos2;
-		pos2 = this->_path.find('/', tmp);
-		if (pos2 == std::string::npos || pos2 > pos)
-		{
-			if (pos2 < pos)
-				script_name = this->_path.substr(pos2, pos);
-			else
-				script_name = this->_path.substr(tmp, pos);
-			break ;
-		}
-	}
+	script_name = this->_path.substr(pos2, pos);
     if (pos != std::string::npos) // take the path before the query string (separated by a '?')
     {
 		path_info = this->_path.substr(0, pos);
