@@ -1,6 +1,11 @@
 #include "RequestHTTP.hpp"
 
 // Public
+RequestHTTP::RequestHTTP() 
+{
+
+}
+
 RequestHTTP::RequestHTTP( std::string request ) 
 {
 	std::vector<std::string> headers;

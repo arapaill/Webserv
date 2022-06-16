@@ -6,6 +6,7 @@
 class RequestHTTP
 {
 	public:
+		RequestHTTP();
 		RequestHTTP( std::string request );
 		~RequestHTTP();
 		RequestHTTP(RequestHTTP const & cpy);
