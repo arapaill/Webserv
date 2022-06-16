@@ -226,7 +226,7 @@ void    Parser::is_allow_methods(std::string info, Config &config)
    // std::cout << config.get_methods().size() << std::endl;
 }
 
-void    Parser::is_location(std::vector<std::string> info)
+void    Parser::is_location(std::vector<std::string> info, Config &config)
 {
     std::string location_name;
     std::vector<std::string> cmd;
@@ -240,6 +240,6 @@ void    Parser::is_location(std::vector<std::string> info)
     get_info(info, location_config);
     
     //std::cout << location_name << std::endl;
-    _config_file.get_location()[location_name] = location_config;
+    config.get_location()[location_name] = location_config;
     //std::cout <<  _config_file.get_location().at(location_name).get_server_name() << std::endl;
 }

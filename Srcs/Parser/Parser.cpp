@@ -114,7 +114,7 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 				vector_info.push_back(info);
 			}
            // std::cout << vector_string.at(i) << std::endl;
-			is_location(vector_info);
+			is_location(vector_info, config);
             vector_info.clear();
 		}
 		else if (info.find("error_page ") != std ::string::npos)
@@ -163,10 +163,12 @@ void    Parser::parse(void)
 		get_info(_allblock.at(i), _config_file);
 		_vector_Config.push_back(_config_file);
 	}
-	//std::cout << _vector_Config.at(0).get_server_name() << std::endl;
-    //std::cout <<  _vector_Config.at(0).get_location().begin()->second.get_server_name() << std::endl;
+	//std::cout << _vector_Config.at(0).get_port() << std::endl;
+   // std::cout << _vector_Config.at(0).get_host().s_addr << std::endl;
+    //std::cout << _vector_Config.at(0).get_host_name() << std::endl;
+   // std::cout <<  _vector_Config.at(0).get_location().begin()->second.get_server_name() << std::endl;
     //std::cout <<  _vector_Config.at(0).get_location().rbegin()->second.get_server_name() << std::endl;
-    //std::cout <<  _vector_Config.at(0).get_location().rbegin()->second.get_methods().size() << std::endl;
+    //std::cout <<  _vector_Config.at(0).get_location().begin()->second.get_location().begin()->second.get_server_name() << std::endl;
 }
 
 /*
