@@ -6,7 +6,7 @@
 /*   By: jandre <ajuln@hotmail.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/14 09:19:04 by jandre            #+#    #+#             */
-/*   Updated: 2022/06/15 17:20:17 by jandre           ###   ########.fr       */
+/*   Updated: 2022/06/16 16:24:05 by jandre           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ class CGIhandler {
 		void			init_env();
 		std::string		& get_body();
 		void			execute_CGI();
+		char			**get_env_as_char_array();
 };
 
 #endif
