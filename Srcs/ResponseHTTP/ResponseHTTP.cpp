@@ -13,7 +13,7 @@ void ResponseHTTP::GET(std::string path)
 {	
 	_directives["Date"] = getDate();
 
-	if (!isAllowedMethod("GET"))
+	if (!isAllowedMethod("GET", _config.get_root() + path))
 	{
 		_statusCode = generateStatusCode(405);
 		createStatusLine();
@@ -35,7 +35,7 @@ void ResponseHTTP::POST(std::string path)
 {	
 	_directives["Date"] = getDate();
 
-	if (!isAllowedMethod("POST"))
+	if (!isAllowedMethod("POST", path))
 	{
 		_statusCode = generateStatusCode(405);
 		createStatusLine();
@@ -53,7 +53,7 @@ void ResponseHTTP::DELETE(std::string path)
 {
 	_directives["Date"] = getDate();
 
-	if (!isAllowedMethod("DELETE"))
+	if (!isAllowedMethod("DELETE", path))
 	{
 		_statusCode = generateStatusCode(405);
 		createStatusLine();
@@ -156,8 +156,8 @@ void ResponseHTTP::createStatusLine()
 
 void ResponseHTTP::createHeaders()
 {
-	_headers += "Date: "			+ _directives["Date"] + "\n";
-	_headers += "Server: "			+ _directives["Server"] + "\n";
+	_headers += "Date: " 	+ _directives["Date"] + "\n";
+	_headers += "Server: "	+ _directives["Server"] + "\n";
 
 	if (_directives["Last-Modified"] != "")
 		_headers += "Last-Modified: "	+ _directives["Last-Modified"] + "\n"; // Sans doute trop compliqué à implémenter
@@ -171,7 +171,7 @@ void ResponseHTTP::createHeaders()
 
 void ResponseHTTP::generateBody(std::string path)
 {
-	if (path == "/.html")
+	if (path == "/")
 		path = "index.html";
 
 	std::ifstream		requested_file("Configs/" + _config.get_root() + "/" + path);
@@ -183,6 +183,7 @@ void ResponseHTTP::generateBody(std::string path)
 		_directives["Content-Type"] = "text/" + ext;
 	else
 		_directives["Content-Type"] = "text/" + ext; // renvoie "html", devrait renvoyer "text/html"
+
 
 	if (requested_file.is_open())
 	{
@@ -237,9 +238,16 @@ std::string	ResponseHTTP::getDate(void)
 	return (std::string(buffer));
 }
 
-bool ResponseHTTP::isAllowedMethod(std::string method)
+bool ResponseHTTP::isAllowedMethod(std::string method, std::string path)
 {
-	std::vector<std::string> configMethods	= _config.get_methods();
+	std::vector<std::string> configMethods = _config.get_methods();
+	std::vector<std::string> locationMethods;
+
+	if (!isThereLocation(path).empty())
+		locationMethods = getLocation(isThereLocation(path)).get_methods();
+
+	if (locationMethods.size() > 0)
+		configMethods = locationMethods;
 
 	if (configMethods.size() == 0)
 		return (true);
@@ -253,16 +261,34 @@ bool ResponseHTTP::isAllowedMethod(std::string method)
 	return (false);
 }
 
+std::string ResponseHTTP::isThereLocation(std::string path)
+{
+	std::map<std::string, Config> location = _config.get_location();
+
+	for (std::map<std::string, Config>::iterator it = location.begin() ; it != location.end() ; it++)
+	{
+		if (path.find(it->first) != std::string::npos)	
+			return (it->first);
+	}
+
+	return ("");
+}
+
+Config ResponseHTTP::getLocation(std::string index)
+{
+	std::map<std::string, Config> location = _config.get_location();
+
+	return (location.at(index));
+}
+
 bool ResponseHTTP::isAllowedContentType(std::string contentType)
 {
-	std::vector<std::string> requestAccept	= _request.getAccept();
+	std::vector<std::string> requestAccept = _request.getAccept();
 
-	for (std::vector<std::string>::iterator it1 = requestAccept.begin() ; it1 != requestAccept.end() ; it1++)
+	for (std::vector<std::string>::iterator it = requestAccept.begin() ; it != requestAccept.end() ; it++)
 	{
-		{
-			if (*it1 == contentType)
+		if (*it == contentType)
 				return (true);
-		}
 	}
 
 	return (false);

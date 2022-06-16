@@ -8,6 +8,8 @@ class RequestHTTP
 	public:
 		RequestHTTP( std::string request );
 		~RequestHTTP();
+		RequestHTTP(RequestHTTP const & cpy);
+		RequestHTTP & operator=(RequestHTTP const & rhs);
 
 		// Getters
 		std::string					getFile();
