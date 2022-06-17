@@ -1,5 +1,5 @@
 CPP = c++
-CPPFLAGS = 
+CPPFLAGS = #-std=c++98
 
 NAME = webserv
 SRCS = Srcs/main.cpp Srcs/Webserv/Webserv.cpp Srcs/ResponseHTTP/ResponseHTTP.cpp Srcs/Parser/Parser.cpp Srcs/Parser/Is_key_word.cpp Srcs/RequestHTTP/RequestHTTP.cpp
