@@ -17,11 +17,9 @@ class Webserv
 	private:
 		Parser					_parser;
 		std::vector<Config>		_serversConfig;
-		std::vector<int>		_serversFD;
-		fd_set					_currentSockets, _readySockets;   
-
-		// Inutilisé pour le moment
-		std::vector<int>		_clientsFD;
+		std::vector<int>		_serversFD, _clientsFD;
+		fd_set					_currentSockets, _readySockets;
+		int						_maxSocket;
 
 		void	init();
 		void	launchServers();
@@ -34,6 +32,8 @@ class Webserv
 
 		// Utils
 		Config &	getServerConfig( std::string host );
+		std::string getTime();
+
 
 };
 

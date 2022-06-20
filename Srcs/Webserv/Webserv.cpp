@@ -9,15 +9,19 @@ Webserv::~Webserv() {};
 void Webserv::run()
 {
 	int ret = 0;
+	struct timeval timeout;
 
-	std::cout << YELLOW << "Démarrage..." << RESET << std::endl;
+	timeout.tv_sec = 1;
+	timeout.tv_usec = 0;
+
+	std::cout << YELLOW << getTime() << "Démarrage..." << RESET << std::endl;
 
 	init();
 	while (g_keepRunning)
 	{
 		_readySockets = _currentSockets;
 
-		ret = select(FD_SETSIZE, &_readySockets, NULL, NULL, NULL);
+		ret = select(_maxSocket + 1, &_readySockets, NULL, NULL, &timeout);
 
 		if (ret < 0) {
 			if (g_keepRunning == false)
@@ -26,18 +30,51 @@ void Webserv::run()
 			exit(EXIT_FAILURE);
 		}
 
-		for (int i = 0 ; i < FD_SETSIZE ; i++) {
+		for (std::vector<int>::iterator it = _serversFD.begin() ; it != _serversFD.end() ; it++)
+		{
+			if (FD_ISSET(*it, &_readySockets)) {
+				if (isServer(*it)) {
+					int clientSocket = acceptNewClient(*it);
+					_clientsFD.push_back(clientSocket);
+					if (clientSocket > _maxSocket)
+						_maxSocket = clientSocket;
+					FD_SET(clientSocket, &_currentSockets);
+				}
+			}
+		}
+
+		for (std::vector<int>::iterator it = _clientsFD.begin() ; it != _clientsFD.end() ;)
+		{
+			if (FD_ISSET(*it, &_readySockets)) {
+				handleRead(*it);
+				FD_CLR(*it, &_currentSockets);
+				if (*it == _maxSocket)
+					_maxSocket -= 1;
+				close(*it);
+				it = _clientsFD.erase(it);
+			}
+			else {
+				++it;
+			}
+		}
+
+	/* 	for (int i = 0 ; i < _maxSocket ; i++) {
 			if (FD_ISSET(i, &_readySockets)) {
 				if (isServer(i)) {
 					int clientSocket = acceptNewClient(i);
+					std::cout << "TEST: " << clientSocket << "\n";
+					if (clientSocket > _maxSocket)
+						_maxSocket = clientSocket;
 					FD_SET(clientSocket, &_currentSockets);
 				}
 				else {
 					handleRead(i);
 					FD_CLR(i, &_currentSockets);
+					if (i == _maxSocket)
+						_maxSocket -= 1;
 				}
 			}
-		}
+		} */
 	}
 	closeServers();
 }
@@ -56,18 +93,19 @@ void Webserv::launchServers()
 {
 	for (std::vector<Config>::iterator it = _serversConfig.begin(); it != _serversConfig.end(); it++)
 	{
-		std::cout << YELLOW << "Launching server « " << it->get_server_name() << " »..." << RESET << std::endl;
+		std::cout << YELLOW << getTime() << "Launching server « " << it->get_server_name() << " »..." << RESET << std::endl;
 		int serverSocket = initSocket(*it);
 		_serversFD.push_back(serverSocket);
 		FD_SET(serverSocket, &_currentSockets);
-		std::cout << GREEN << "Server successfuly launched. Listening on « " << it->get_host_name() << ":" << std::to_string(it->get_port()) << " »." << RESET << std::endl;
+		_maxSocket = serverSocket;
+		std::cout << GREEN << getTime() << "Server successfuly launched. Listening on « " << it->get_host_name() << ":" << std::to_string(it->get_port()) << " »." << RESET << std::endl;
 	}
 	std::cout << std::endl;
 }
 
 void Webserv::closeServers()
 {
-	std::cout << YELLOW << "\nShutting down server(s)..." << RESET << std::endl;
+	std::cout << YELLOW << getTime() << "\nShutting down server(s)..." << RESET << std::endl;
 	for (std::vector<int>::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
 		close(*it);
 }
@@ -82,7 +120,7 @@ int Webserv::initSocket( Config serverConfig )
 	struct sockaddr_in 	serverAddress;
 
 	fcntl(serverSocket, F_SETFL, O_NONBLOCK);
-	if ((serverSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	if ((serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
 	{
 		closeSockets();
 		throw (std::logic_error("Error: socket() failed"));
@@ -155,15 +193,18 @@ void Webserv::handleRead( int clientFD )
 		return ;
 	else
 	{
-		std::cout << GREEN << "INCOMING DATA :" << RESET << std::endl;
+		//std::cout << GREEN << "INCOMING DATA :" << RESET << std::endl;
+
+		//std::cout << "-------DEBUG-------\n" << request << "\n-------------------\n";
 		
 		RequestHTTP		parsedRequest(request);
 		Config			serverConfig = getServerConfig(parsedRequest.getHost());
 		ResponseHTTP	response(serverConfig, parsedRequest);
 
-		std::cout	<< "Method : "	<< parsedRequest.getMethod() << std::endl
-					<< "Host : "	<< parsedRequest.getHost()	 << std::endl
-					<< "File : "	<< parsedRequest.getFile()	 << std::endl;
+		std::cout	<<	YELLOW << getTime()
+					<< "<< [Host: "	<< parsedRequest.getHost()		<< "] "
+					<< "[Method: "			<< parsedRequest.getMethod()	<< "] "
+					<< "[File : "			<< parsedRequest.getFile()		<< "]" << RESET << std::endl;
 
 		if (parsedRequest.getMethod() == "GET")
 			response.GET(parsedRequest.getFile());
@@ -175,7 +216,7 @@ void Webserv::handleRead( int clientFD )
 		if (write(clientFD, response.getResponseHTTP().c_str(), response.getResponseHTTP().size()) == -1)
 			std::cerr << RED << "Coulnd't respond to the client." << RESET << std::endl;
 		else
-			std::cout	<< "Return Code : " << response.getStatusCode() << std::endl << std::endl;
+			std::cout << YELLOW << getTime() << ">> [Return Code: " << response.getStatusCode() << "]" << RESET << std::endl << std::endl;
 	}
 }
 
@@ -202,4 +243,16 @@ Config & Webserv::getServerConfig( std::string host )
 			return (*it);
 	}
 	throw (std::logic_error("Error: Server Config Not Found"));
+}
+
+std::string Webserv::getTime()
+{
+	char			buffer[32];
+	struct timeval	tv;
+	struct tm *		tm;
+
+	gettimeofday(&tv, NULL);
+	tm = localtime(&tv.tv_sec);
+	strftime(buffer, 32, "[%H:%M:%S] ", tm);
+	return (std::string(buffer));
 }
