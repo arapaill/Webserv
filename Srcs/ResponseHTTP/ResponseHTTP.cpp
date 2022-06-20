@@ -1,8 +1,11 @@
 #include "ResponseHTTP.hpp"
 
 // Public
+
+
 ResponseHTTP::ResponseHTTP(Config config, RequestHTTP request) : _config(config), _request(request)
 {
+	_getLocationFirst = true;
 	initDirectives();
 	initStatusCode();
 }
@@ -12,6 +15,9 @@ ResponseHTTP::~ResponseHTTP() {};
 void ResponseHTTP::GET(std::string path)
 {	
 	_directives["Date"] = getDate();
+
+	if (checkReturn(_config.get_root() + path))
+		return ;
 
 	if (!isAllowedMethod("GET", _config.get_root() + path))
 	{
@@ -35,7 +41,7 @@ void ResponseHTTP::POST(std::string path)
 {	
 	_directives["Date"] = getDate();
 
-	if (!isAllowedMethod("POST", path))
+	if (!isAllowedMethod("POST", _config.get_root() + path))
 	{
 		_statusCode = generateStatusCode(405);
 		createStatusLine();
@@ -53,7 +59,7 @@ void ResponseHTTP::DELETE(std::string path)
 {
 	_directives["Date"] = getDate();
 
-	if (!isAllowedMethod("DELETE", path))
+	if (!isAllowedMethod("DELETE", _config.get_root() + path))
 	{
 		_statusCode = generateStatusCode(405);
 		createStatusLine();
@@ -75,7 +81,7 @@ void ResponseHTTP::initDirectives()
 {
 	_directives["Allow"] = "";
 	_directives["Content-Language"] = "";
-	_directives["Content-Length"] = "";
+	_directives["Content-Length"] = "0\n";
 	_directives["Content-Location"] = "";
 	_directives["Content-Type"] = "";
 	_directives["Date"] = "";
@@ -156,15 +162,16 @@ void ResponseHTTP::createStatusLine()
 
 void ResponseHTTP::createHeaders()
 {
-	_headers += "Date: " 	+ _directives["Date"] + "\n";
-	_headers += "Server: "	+ _directives["Server"] + "\n";
+	_headers += "Date: " 			+ _directives["Date"] + "\n";
+	_headers += "Server: "			+ _directives["Server"] + "\n";
+	_headers += "Content-Length: "	+ _directives["Content-Length"] + "\n";
 
 	if (_directives["Last-Modified"] != "")
 		_headers += "Last-Modified: "	+ _directives["Last-Modified"] + "\n"; // Sans doute trop compliqué à implémenter
-	if (_directives["Content-Length"] != "")
-		_headers += "Content-Length: "	+ _directives["Content-Length"] + "\n";
 	if (_directives["Content-Type"] != "")
 		_headers += "Content-Type: "	+ _directives["Content-Type"] + "\n";
+	if (_directives["Location"] != "")
+		_headers += "Content-Type: "	+ _directives["Location"] + "\n";
 
 	_headers += "\n";
 }
@@ -172,17 +179,17 @@ void ResponseHTTP::createHeaders()
 void ResponseHTTP::generateBody(std::string path)
 {
 	if (path == "/")
-		path = "index.html";
+		path = _config.get_index();
 
 	std::ifstream		requested_file("Configs/" + _config.get_root() + "/" + path);
 	std::stringstream	buffer;
 
-	std::string ext = path.substr(path.find_last_of('.') + 1);
+/* 	std::string ext = path.substr(path.find_last_of('.') + 1);  // A REFAIRE
 
 	if (isAllowedContentType(ext))
-		_directives["Content-Type"] = "text/" + ext;
-	else
 		_directives["Content-Type"] = "text/" + ext; // renvoie "html", devrait renvoyer "text/html"
+	else if (isAllowedContentType("plain/text"))
+		_directives["Content-Type"] = "plain/text"; */
 
 
 	if (requested_file.is_open())
@@ -240,11 +247,12 @@ std::string	ResponseHTTP::getDate(void)
 
 bool ResponseHTTP::isAllowedMethod(std::string method, std::string path)
 {
-	std::vector<std::string> configMethods = _config.get_methods();
-	std::vector<std::string> locationMethods;
+	std::vector<std::string>	configMethods = _config.get_methods();
+	std::vector<std::string>	locationMethods;
+	Config						locationConfig;
 
-	if (!isThereLocation(path).empty())
-		locationMethods = getLocation(isThereLocation(path)).get_methods();
+	while (getLocation(path, locationConfig) && locationConfig.get_methods().size() > 0)
+		locationMethods = locationConfig.get_methods();
 
 	if (locationMethods.size() > 0)
 		configMethods = locationMethods;
@@ -261,26 +269,40 @@ bool ResponseHTTP::isAllowedMethod(std::string method, std::string path)
 	return (false);
 }
 
-std::string ResponseHTTP::isThereLocation(std::string path)
+bool ResponseHTTP::getLocation(std::string path, Config & locationConfig)
 {
-	std::map<std::string, Config> location = _config.get_location();
+	std::map<std::string, Config>	location;
+
+	if (_getLocationFirst)
+	{
+		location = _config.get_location();
+		_getLocationFirst = false;
+	}
+	else
+	{
+		//std::cout << "Current server name1: " << locationConfig.get_server_name() << "\n";
+		location = locationConfig.get_location();
+		//std::cout << "Location size: " << location.size() << "\n";
+	}
 
 	for (std::map<std::string, Config>::iterator it = location.begin() ; it != location.end() ; it++)
 	{
-		if (path.find(it->first) != std::string::npos)	
-			return (it->first);
+		//std::cout << "Current location: " << it->second.get_server_name() << "\n";
+
+		if (path.find(it->first) != std::string::npos)
+		{
+			locationConfig = it->second;
+			//std::cout << "TRUE\n";
+			//std::cout << "Current server name2: " << locationConfig.get_server_name() << "\n";
+			return (true);
+		}
 	}
 
-	return ("");
+	//std::cout << "FALSE\n";
+	return (false);
 }
 
-Config ResponseHTTP::getLocation(std::string index)
-{
-	std::map<std::string, Config> location = _config.get_location();
-
-	return (location.at(index));
-}
-
+// On vérifie que le contentType qu'on veut renvoyer au client est bien dans la liste des accept qu'il nous a envoyé.
 bool ResponseHTTP::isAllowedContentType(std::string contentType)
 {
 	std::vector<std::string> requestAccept = _request.getAccept();
@@ -291,5 +313,25 @@ bool ResponseHTTP::isAllowedContentType(std::string contentType)
 				return (true);
 	}
 
+	return (false);
+}
+
+// Vérifie si il y a un éventuel return dans le .conf ou ses location
+bool ResponseHTTP::checkReturn(std::string path)
+{
+	Config locationConfig;
+
+	while (getLocation(_config.get_root() + path, locationConfig))
+	{
+		if (locationConfig.get_return().size() == 1)
+		{
+			_statusCode = generateStatusCode(locationConfig.get_return().begin()->first);
+			_directives["Location"] = locationConfig.get_return().begin()->second;
+
+			createStatusLine();
+			createHeaders();
+			return (true);
+		}
+	}
 	return (false);
 }

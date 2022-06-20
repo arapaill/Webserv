@@ -28,6 +28,8 @@ class ResponseHTTP
 		std::map<std::string, std::string>	_directives;
 		std::map<int, std::string>			_statusCodes;
 
+		bool								_getLocationFirst;
+
 		void		createStatusLine();
 		void		createHeaders();
 
@@ -42,9 +44,8 @@ class ResponseHTTP
 		bool		isAllowedContentType( std::string contentType );
 		bool		isAllowedMethod( std::string method, std::string path );
 		void 		deleteFile( std::string path );
-		std::string isThereLocation( std::string path );
-		Config 		getLocation( std::string index );
-
+		bool		getLocation( std::string path, Config & locationConfig );
+		bool		checkReturn( std::string path );
 
 
 };
