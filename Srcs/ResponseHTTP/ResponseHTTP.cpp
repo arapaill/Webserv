@@ -14,10 +14,66 @@ ResponseHTTP::~ResponseHTTP() {};
 
 std::string ResponseHTTP::getBodySize() { return (std::to_string(_body.size())); }
 
+void ResponseHTTP::gen_autoindex()
+{
+    std::string dirName;
+    std::string root;
+    char tmp[256];
+    getcwd(tmp, 256);
+
+    root = _config.get_root();
+    const char *path = strcat(tmp, root);
+    std::cout << "Current working directory: " << path << std::endl;
+    dirName = &path[0];
+    DIR *dir = opendir(path);
+    if (dir == NULL)
+    {
+        perror("error: ");
+        std::cout << RED << "Error: could not open [" << path << "]\n"  << RESET;
+        exit(1);
+    }
+    std::string page = \
+     "<!DOCTYPE html>\n\
+    <html>\n\
+    <head>\n\
+            <title>" + dirName + "</title>\n\
+    </head>\n\
+    <body>\n\
+    <h1>INDEX</h1>\n\
+    <p>\n";
+    
+    if (dirName[0] != '/')
+        dirName = "/" + dirName;
+     for (struct dirent *dirEntry = readdir(dir); dirEntry; dirEntry = readdir(dir))
+     {
+        std::stringstream   ss;
+        ss << "<li><a href=\"" << dirEntry->d_name << "\">" << dirEntry->d_name << "</a></li>\n";
+        page += ss.str();
+        ss.clear();
+     }
+    page +="\
+    </p>\n\
+    </body>\n\
+    </html>\n";
+    closedir(dir);
+   // std::cout << page << std::endl;
+    _body = page;
+    _directives["Content-Length"] = std::to_string(_body.size());
+}
+
 void ResponseHTTP::GET(std::string path)
 {	
 	_directives["Date"] = getDate();
-
+    //std::cout << "autoindex : " << _config.get_autoindex() << "path: " << path << std::endl;
+    if(_config.get_autoindex() == true && path == "/")
+    {
+        gen_autoindex();
+        _statusCode = generateStatusCode(200);
+		createStatusLine();
+		createHeaders();
+        return;
+    }
+       
 	if (checkReturn(_config.get_root() + path))
 		return ;
 
