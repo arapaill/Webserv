@@ -105,7 +105,7 @@ void Webserv::launchServers()
 
 void Webserv::closeServers()
 {
-	std::cout << YELLOW << getTime() << "\nShutting down server(s)..." << RESET << std::endl;
+	std::cout << YELLOW << getTime() << "Shutting down server(s)..." << RESET;
 	for (std::vector<int>::iterator it = _serversFD.begin(); it != _serversFD.end(); it++)
 		close(*it);
 }
@@ -203,8 +203,8 @@ void Webserv::handleRead( int clientFD )
 
 		std::cout	<<	YELLOW << getTime()
 					<< "<< [Host: "	<< parsedRequest.getHost()		<< "] "
-					<< "[Method: "			<< parsedRequest.getMethod()	<< "] "
-					<< "[File : "			<< parsedRequest.getFile()		<< "]" << RESET << std::endl;
+					<< "[Method: "	<< parsedRequest.getMethod()	<< "] "
+					<< "[File : "	<< parsedRequest.getFile()		<< "]" << RESET << std::endl;
 
 		if (parsedRequest.getMethod() == "GET")
 			response.GET(parsedRequest.getFile());
@@ -216,7 +216,10 @@ void Webserv::handleRead( int clientFD )
 		if (write(clientFD, response.getResponseHTTP().c_str(), response.getResponseHTTP().size()) == -1)
 			std::cerr << RED << "Coulnd't respond to the client." << RESET << std::endl;
 		else
-			std::cout << YELLOW << getTime() << ">> [Return Code: " << response.getStatusCode() << "]" << RESET << std::endl << std::endl;
+			std::cout << YELLOW << getTime() 
+			<< ">> [Return Code: " << response.getStatusCode() << "] "
+			<< "[Body Size: " << response.getBodySize() << "]"
+			<< RESET << std::endl << std::endl;
 	}
 }
 

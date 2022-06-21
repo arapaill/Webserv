@@ -17,6 +17,7 @@ class ResponseHTTP
 		// Getter
 		std::string	getResponseHTTP();
 		std::string getStatusCode();
+		std::string getBodySize();
 
 	private:
 		Config								_config;

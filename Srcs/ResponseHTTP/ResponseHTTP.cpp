@@ -12,6 +12,8 @@ ResponseHTTP::ResponseHTTP(Config config, RequestHTTP request) : _config(config)
 
 ResponseHTTP::~ResponseHTTP() {};
 
+std::string ResponseHTTP::getBodySize() { return (std::to_string(_body.size())); }
+
 void ResponseHTTP::GET(std::string path)
 {	
 	_directives["Date"] = getDate();
