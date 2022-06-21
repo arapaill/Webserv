@@ -73,7 +73,7 @@ void ResponseHTTP::POST(std::string path)
 	//IF CGI
 	//ELSE ...
 	//Check si le fichier existe change le statut
-	check_file.open("Configs/" + _config.get_root() + path);
+	check_file.open(_config.get_root() + path);
 	if (check_file && _request.getBody().size() > 0)
 		_statusCode = generateStatusCode(200);
 	else if (_request.getBody().size() > 0)
@@ -81,7 +81,7 @@ void ResponseHTTP::POST(std::string path)
 	check_file.close();
 
 	//open et rajoute le body au fichier
-	file.open("Configs/" + _config.get_root() + path, std::ios_base::app);
+	file.open(+ _config.get_root() + path, std::ios_base::app);
 	file << _request.getBody();
 	file.close();
 	createStatusLine();
@@ -214,7 +214,7 @@ void ResponseHTTP::generateBody(std::string path)
 	if (path == "/")
 		path = _config.get_index();
 
-	std::ifstream		requested_file("Configs/" + _config.get_root() + "/" + path);
+	std::ifstream		requested_file(_config.get_root() + "/" + path);
 	std::stringstream	buffer;
 
 /* 	std::string ext = path.substr(path.find_last_of('.') + 1);  // A REFAIRE
@@ -247,7 +247,7 @@ void ResponseHTTP::deleteFile(std::string path)
 	if (path == "/.html")
 		path = "index.html";
 
-	std::string	s		= "Configs/" + _config.get_root() + "/" + path;
+	std::string	s		= _config.get_root() + "/" + path;
 	char *		c_str	= &s[0];
 
 	if (std::remove(c_str) != 0)
