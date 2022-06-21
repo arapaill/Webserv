@@ -15,6 +15,8 @@ RequestHTTP::RequestHTTP( std::string request )
 	for (std::vector<std::string>::iterator it = headers.begin() ; it != headers.end() ; it++)
 	{
 		parseKeyword(*it);
+		if ((*it).size() == 1 && isspace((*it).back()))
+			_body = *(++it);
 	}
 }
 
