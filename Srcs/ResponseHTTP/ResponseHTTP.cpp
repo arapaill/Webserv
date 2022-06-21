@@ -41,7 +41,11 @@ void ResponseHTTP::GET(std::string path)
 
 void ResponseHTTP::POST(std::string path)
 {	
+	std::ifstream check_file;
+	std::ofstream file;
+
 	_directives["Date"] = getDate();
+	_statusCode = generateStatusCode(204);
 
 	if (!isAllowedMethod("POST", _config.get_root() + path))
 	{
@@ -50,9 +54,20 @@ void ResponseHTTP::POST(std::string path)
 		createHeaders();
 		return ;
 	}
+	//IF CGI
+	//ELSE ...
+	//Check si le fichier existe change le statut
+	check_file.open("Configs/" + _config.get_root() + path);
+	if (check_file && _request.getBody().size() > 0)
+		_statusCode = generateStatusCode(200);
+	else if (_request.getBody().size() > 0)
+		_statusCode = generateStatusCode(201);
+	check_file.close();
 
-	_statusCode = generateStatusCode(501);
-
+	//open et rajoute le body au fichier
+	file.open("Configs/" + _config.get_root() + path, std::ios_base::app);
+	file << _request.getBody();
+	file.close();
 	createStatusLine();
 	createHeaders();
 }
