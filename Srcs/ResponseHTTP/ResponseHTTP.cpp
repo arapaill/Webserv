@@ -81,7 +81,7 @@ void ResponseHTTP::POST(std::string path)
 	check_file.close();
 
 	//open et rajoute le body au fichier
-	file.open(+ _config.get_root() + path, std::ios_base::app);
+	file.open(_config.get_root() + path, std::ios_base::app);
 	file << _request.getBody();
 	file.close();
 	createStatusLine();
