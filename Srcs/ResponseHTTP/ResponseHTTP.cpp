@@ -218,9 +218,9 @@ void ResponseHTTP::generateAutoindex(std::string path)
 {
 	std::string dirPath = _config.get_root() + path;
 	DIR * dir 			= opendir(dirPath.c_str());
-	std::string	index	= "<!DOCTYPE html><html><head><title>" + dirPath + "</title></head><body><h1>INDEX</h1>";
+	std::string	index	= "<!DOCTYPE html><html><head><title>" + dirPath + "</title></head><body><h1>Index of " + path + "</h1><hr>";
 
-	std::cout << "Current working directory: " << dirPath << std::endl;
+	//std::cout << "Current working directory: " << dirPath << std::endl;
 
 	if (dir == NULL)
 	{
@@ -238,7 +238,7 @@ void ResponseHTTP::generateAutoindex(std::string path)
 		index += ss.str();
 		ss.clear();
 	}
-	index += "</body></html>";
+	index += "<hr></body></html>";
 	closedir(dir);
 	_body = index;
 	_directives["Content-Length"] = std::to_string(_body.size());
