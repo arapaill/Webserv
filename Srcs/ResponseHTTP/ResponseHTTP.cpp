@@ -14,78 +14,24 @@ ResponseHTTP::~ResponseHTTP() {};
 
 std::string ResponseHTTP::getBodySize() { return (std::to_string(_body.size())); }
 
-void ResponseHTTP::gen_autoindex(std::string path)
-{
-    std::string dirPath;
-
-    dirPath = _config.get_root() + path;
-    std::cout << "Current working directory: " <<dirPath << std::endl;
-    DIR *dir = opendir(dirPath.c_str());
-    if (dir == NULL)
-    {
-        perror("error: ");
-        std::cout << RED << "Error: could not open [" <<dirPath << "]\n"  << RESET;
-        exit(1);
-    }
-    std::string page = \
-     "<!DOCTYPE html>\n\
-    <html>\n\
-    <head>\n\
-            <title>" + dirPath + "</title>\n\
-    </head>\n\
-    <body>\n\
-    <h1>INDEX</h1>\n\
-    <p>\n";
-
-     for (struct dirent *dirEntry = readdir(dir); dirEntry; dirEntry = readdir(dir))
-     {
-        std::stringstream   ss;
-        ss << "<li><a href=\"" << dirEntry->d_name << "\">" << dirEntry->d_name << "</a></li>\n";
-        page += ss.str();
-        ss.clear();
-     }
-    page +="\
-    </p>\n\
-    </body>\n\
-    </html>\n";
-    closedir(dir);
-   // std::cout << page << std::endl;
-    _body = page;
-    _directives["Content-Length"] = std::to_string(_body.size());
-}
-
 void ResponseHTTP::GET(std::string path)
 {	
 	_directives["Date"] = getDate();
-    //std::cout << "autoindex : " << _config.get_autoindex() << "path: " << path << std::endl;
-    
-    if(_config.get_autoindex() == true && path == "/")
-    {
-        gen_autoindex(path);
-        _statusCode = generateStatusCode(200);
-		createStatusLine();
-		createHeaders();
-        return;
-    }
-       
 
-	if (_config.get_client_max_body_size() < _request.getBody().size())
-	{
-		_statusCode = generateStatusCode(413);
-		createStatusLine();
-		createHeaders();
+	if (checkConfig(path, "GET"))
 		return ;
-	}
+
+	struct stat buf;
+	std::string tmp = _config.get_root() + '/' + path;
+	stat(tmp.c_str(), &buf);
 	
-	if (checkReturn(_config.get_root() + path))
-		return ;
-
-	if (!isAllowedMethod("GET", _config.get_root() + path))
+	if (_config.get_autoindex() && S_ISDIR(buf.st_mode))
 	{
-		_statusCode = generateStatusCode(405);
+		generateAutoindex(path);
+		_statusCode = generateStatusCode(200);
 		createStatusLine();
 		createHeaders();
-		return ;
+		return;
 	}
 
 	/* Pour les CGI
@@ -104,23 +50,12 @@ void ResponseHTTP::POST(std::string path)
 	std::ofstream file;
 
 	_directives["Date"] = getDate();
+
+	if (checkConfig(path, "POST"))
+		return ;
+
 	_statusCode = generateStatusCode(204);
 
-	if (_config.get_client_max_body_size() < _request.getBody().size())
-	{
-		_statusCode = generateStatusCode(413);
-		createStatusLine();
-		createHeaders();
-		return ;
-	}
-
-	if (!isAllowedMethod("POST", _config.get_root() + path))
-	{
-		_statusCode = generateStatusCode(405);
-		createStatusLine();
-		createHeaders();
-		return ;
-	}
 	//IF CGI
 	//ELSE ...
 	//Check si le fichier existe change le statut
@@ -143,17 +78,36 @@ void ResponseHTTP::DELETE(std::string path)
 {
 	_directives["Date"] = getDate();
 
-	if (!isAllowedMethod("DELETE", _config.get_root() + path))
-	{
-		_statusCode = generateStatusCode(405);
-		createStatusLine();
-		createHeaders();
+	if (checkConfig(path, "DELETE"))
 		return ;
-	}
 
 	deleteFile(path);	
 	createStatusLine();
 	createHeaders();
+}
+
+bool ResponseHTTP::checkConfig(std::string path, std::string method)
+{
+	if (!isAllowedMethod(method, _config.get_root() + path))
+	{
+		_statusCode = generateStatusCode(405);
+		createStatusLine();
+		createHeaders();
+		return (true);
+	}
+
+	if (checkReturn(_config.get_root() + path))
+		return (true);
+
+	if (_config.get_client_max_body_size() != 0 && _config.get_client_max_body_size() < _request.getBody().size())
+	{
+		_statusCode = generateStatusCode(413);
+		createStatusLine();
+		createHeaders();
+		return (true);
+	}
+
+	return (false);
 }
 
 
@@ -260,15 +214,45 @@ void ResponseHTTP::createHeaders()
 	_headers += "\n";
 }
 
+void ResponseHTTP::generateAutoindex(std::string path)
+{
+	std::string dirPath = _config.get_root() + path;
+	DIR * dir 			= opendir(dirPath.c_str());
+	std::string	index	= "<!DOCTYPE html><html><head><title>" + dirPath + "</title></head><body><h1>INDEX</h1>";
+
+	std::cout << "Current working directory: " << dirPath << std::endl;
+
+	if (dir == NULL)
+	{
+		std::cout << RED << "GenerateAutoindex(): Could not open \"" << dirPath << "\"\n"  << RESET;
+		exit(EXIT_FAILURE); // Pas bon
+	}
+
+	for (struct dirent *dirEntry = readdir(dir); dirEntry; dirEntry = readdir(dir))
+	{
+		std::stringstream ss;
+		if (path != "/")
+			ss << "<li><a href=\"" << path << "/" << dirEntry->d_name << "\">" << dirEntry->d_name << "</a></li>\n";
+		else
+			ss << "<li><a href=\"" << dirEntry->d_name << "\">" << dirEntry->d_name << "</a></li>\n";
+		index += ss.str();
+		ss.clear();
+	}
+	index += "</body></html>";
+	closedir(dir);
+	_body = index;
+	_directives["Content-Length"] = std::to_string(_body.size());
+}
+
 void ResponseHTTP::generateBody(std::string path)
 {
 	if (path == "/")
-		path = _config.get_index();
+		path = "/" + _config.get_index();
 
 	std::ifstream		requested_file(_config.get_root() + path);
 	std::stringstream	buffer;
 
-    std::cout << _config.get_root()  + path << std::endl;
+	// std::cout << "(" << _config.get_root() << ")" << path << std::endl;
 /* 	std::string ext = path.substr(path.find_last_of('.') + 1);  // A REFAIRE
 
 	if (isAllowedContentType(ext))

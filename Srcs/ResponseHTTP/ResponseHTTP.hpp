@@ -41,15 +41,14 @@ class ResponseHTTP
 		// Utils
 		void 		generateBody( std::string filename );
 		std::string	generateStatusCode( int statusCode );
+		void		generateAutoindex( std::string path );
+		bool 		checkConfig(std::string path, std::string method);
 		std::string	getDate( void );
 		bool		isAllowedContentType( std::string contentType );
 		bool		isAllowedMethod( std::string method, std::string path );
 		void 		deleteFile( std::string path );
 		bool		getLocation( std::string path, Config & locationConfig );
 		bool		checkReturn( std::string path );
-        void        gen_autoindex(std::string path );
-
-
 };
 
 #endif
