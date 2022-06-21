@@ -18,6 +18,14 @@ void ResponseHTTP::GET(std::string path)
 {	
 	_directives["Date"] = getDate();
 
+	if (_config.get_client_max_body_size() < _request.getBody().size())
+	{
+		_statusCode = generateStatusCode(413);
+		createStatusLine();
+		createHeaders();
+		return ;
+	}
+	
 	if (checkReturn(_config.get_root() + path))
 		return ;
 
@@ -42,6 +50,14 @@ void ResponseHTTP::GET(std::string path)
 void ResponseHTTP::POST(std::string path)
 {	
 	_directives["Date"] = getDate();
+
+	if (_config.get_client_max_body_size() < _request.getBody().size())
+	{
+		_statusCode = generateStatusCode(413);
+		createStatusLine();
+		createHeaders();
+		return ;
+	}
 
 	if (!isAllowedMethod("POST", _config.get_root() + path))
 	{
