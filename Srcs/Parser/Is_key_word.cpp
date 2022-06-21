@@ -22,16 +22,20 @@ std::vector<std::string> split(const std::string & s, char separator)
 
 bool isNumber(const std::string& str)
 {
-    for (char const &c : str) {
-        if (std::isdigit(c) == 0) return false;
+    const char *c = str.c_str();
+
+    for (int i = 0; c[i] != '\0'; i++) {
+        if (std::isdigit(c[i]) == 0) return false;
     }
     return true;
 }
 
 bool isText(const std::string& str)
 {
-    for (char const &c : str) {
-        if (std::isalpha(c) == 0) return false;
+    const char *c = str.c_str();
+
+    for (int i = 0; c[i] != '\0'; i++) {
+        if (std::isalpha(c[i]) == 0) return false;
     }
     return true;
 }

@@ -18,7 +18,6 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <sstream>
-# include <sys/epoll.h>
 # include <signal.h>
 # include <sys/select.h>
 # include <sys/time.h>

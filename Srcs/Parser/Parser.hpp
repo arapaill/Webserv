@@ -40,7 +40,7 @@ class Parser
     private:
         Config  _config_file;
         std::string _path_file;
-        std::vector<std::vector<std::string>> _allblock;;
+        std::vector<std::vector<std::string> > _allblock;;
         std::vector<Config> _vector_Config;
 };
 
