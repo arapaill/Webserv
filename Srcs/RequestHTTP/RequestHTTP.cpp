@@ -60,8 +60,12 @@ void RequestHTTP::parseKeyword(std::string line)
 
 std::string RequestHTTP::str_toupper( std::string s )
 {
-    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::toupper(c); });
-    return (s);
+	std::locale loc;
+	std::string result = s;
+
+  	for (std::string::size_type i = 0; i < s.length(); ++i)
+    	result[i] = std::toupper(s[i],loc);
+  	return (result);
 }
 
 // GET / HTTP1.1
