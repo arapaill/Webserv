@@ -92,17 +92,17 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 		info = vector_string.at(i);
 		if (info.find("#") != std::string::npos)
 			info.erase(info.find("#"));
-	   	//std::cout << "INFO:" << info << std::endl;
+	   	//std::cout << "INFO: " << info << std::endl;
 		if (info.find("listen ") != std::string::npos)
 			is_listen(info, config);
 		else if (info.find("server_name ") != std::string::npos)
 			is_server_name(info, config);
 		else if (info.find("root ") != std::string::npos)
 			is_root(info, config);
+        else if (info.find("autoindex ") != std::string::npos)
+			is_autoindex(info, config);
 		else if (info.find("index ") != std::string::npos)
 			is_index(info, config);
-		else if (info.find("autoindex ") != std::string::npos)
-			is_autoindex(info, config);
 		else if (info.find("location ") != std::string::npos)
 		{
            // std::cout << vector_string.at(i) << std::endl;
@@ -164,9 +164,9 @@ void    Parser::parse(void)
 		_vector_Config.push_back(_config_file);
 	}
 	//std::cout << _vector_Config.at(0).get_port() << std::endl;
-   // std::cout << _vector_Config.at(0).get_host().s_addr << std::endl;
+    //std::cout << _vector_Config.at(0).get_host().s_addr << std::endl;
     //std::cout << _vector_Config.at(0).get_host_name() << std::endl;
-   // std::cout <<  _vector_Config.at(0).get_location().begin()->second.get_server_name() << std::endl;
+    //std::cout <<  _vector_Config.at(0).get_location().begin()->second.get_server_name() << std::endl;
     //std::cout <<  _vector_Config.at(0).get_location().rbegin()->second.get_server_name() << std::endl;
     //std::cout <<  _vector_Config.at(0).get_location().begin()->second.get_location().begin()->second.get_server_name() << std::endl;
 }

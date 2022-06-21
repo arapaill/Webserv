@@ -121,7 +121,8 @@ void    Parser::is_root(std::string info, Config &config)
         std::cout << RED << "too much directives for root\n" << RESET;
         exit(1);
     }
-    config.set_root(cmd.at(1));
+    tmp = '.' + cmd.at(1);
+    config.set_root(tmp);
 }
 
 void    Parser::is_index(std::string info, Config &config)
@@ -158,10 +159,17 @@ void    Parser::is_autoindex(std::string info, Config &config)
         std::cout << RED << "too much directives for autoindex\n" << RESET;
         exit(1);
     }
-    if(cmd.at(1) == "On")
+   // std::cout << "cmd: " << cmd.at(1) << std::endl;
+    if(cmd.at(1) == "on")
         config.set_autoindex(true);
-    else
+    else if(cmd.at(1) == "off")
         config.set_autoindex(false);
+    else
+    {
+        std::cout << RED << "Error: .conf file: autoindex syntax error\n usage: autoindex on; or autoindex off\n" << RESET;
+        exit(1);
+    }
+   //std::cout << "autoindex parse: " << config.get_autoindex() << std::endl;
 }
 
 void    Parser::is_client_max_body_size(std::string info, Config &config)

@@ -14,36 +14,29 @@ ResponseHTTP::~ResponseHTTP() {};
 
 std::string ResponseHTTP::getBodySize() { return (std::to_string(_body.size())); }
 
-void ResponseHTTP::gen_autoindex()
+void ResponseHTTP::gen_autoindex(std::string path)
 {
-    std::string dirName;
-    std::string root;
-    char tmp[256];
-    getcwd(tmp, 256);
+    std::string dirPath;
 
-    root = _config.get_root();
-    const char *path = strcat(tmp, root);
-    std::cout << "Current working directory: " << path << std::endl;
-    dirName = &path[0];
-    DIR *dir = opendir(path);
+    dirPath = _config.get_root() + path;
+    std::cout << "Current working directory: " <<dirPath << std::endl;
+    DIR *dir = opendir(dirPath.c_str());
     if (dir == NULL)
     {
         perror("error: ");
-        std::cout << RED << "Error: could not open [" << path << "]\n"  << RESET;
+        std::cout << RED << "Error: could not open [" <<dirPath << "]\n"  << RESET;
         exit(1);
     }
     std::string page = \
      "<!DOCTYPE html>\n\
     <html>\n\
     <head>\n\
-            <title>" + dirName + "</title>\n\
+            <title>" + dirPath + "</title>\n\
     </head>\n\
     <body>\n\
     <h1>INDEX</h1>\n\
     <p>\n";
-    
-    if (dirName[0] != '/')
-        dirName = "/" + dirName;
+
      for (struct dirent *dirEntry = readdir(dir); dirEntry; dirEntry = readdir(dir))
      {
         std::stringstream   ss;
@@ -65,15 +58,25 @@ void ResponseHTTP::GET(std::string path)
 {	
 	_directives["Date"] = getDate();
     //std::cout << "autoindex : " << _config.get_autoindex() << "path: " << path << std::endl;
+    
     if(_config.get_autoindex() == true && path == "/")
     {
-        gen_autoindex();
+        gen_autoindex(path);
         _statusCode = generateStatusCode(200);
 		createStatusLine();
 		createHeaders();
         return;
     }
        
+
+	if (_config.get_client_max_body_size() < _request.getBody().size())
+	{
+		_statusCode = generateStatusCode(413);
+		createStatusLine();
+		createHeaders();
+		return ;
+	}
+	
 	if (checkReturn(_config.get_root() + path))
 		return ;
 
@@ -97,7 +100,19 @@ void ResponseHTTP::GET(std::string path)
 
 void ResponseHTTP::POST(std::string path)
 {	
+	std::ifstream check_file;
+	std::ofstream file;
+
 	_directives["Date"] = getDate();
+	_statusCode = generateStatusCode(204);
+
+	if (_config.get_client_max_body_size() < _request.getBody().size())
+	{
+		_statusCode = generateStatusCode(413);
+		createStatusLine();
+		createHeaders();
+		return ;
+	}
 
 	if (!isAllowedMethod("POST", _config.get_root() + path))
 	{
@@ -106,9 +121,20 @@ void ResponseHTTP::POST(std::string path)
 		createHeaders();
 		return ;
 	}
+	//IF CGI
+	//ELSE ...
+	//Check si le fichier existe change le statut
+	check_file.open(_config.get_root() + path);
+	if (check_file && _request.getBody().size() > 0)
+		_statusCode = generateStatusCode(200);
+	else if (_request.getBody().size() > 0)
+		_statusCode = generateStatusCode(201);
+	check_file.close();
 
-	_statusCode = generateStatusCode(501);
-
+	//open et rajoute le body au fichier
+	file.open(_config.get_root() + path, std::ios_base::app);
+	file << _request.getBody();
+	file.close();
 	createStatusLine();
 	createHeaders();
 }
@@ -239,9 +265,10 @@ void ResponseHTTP::generateBody(std::string path)
 	if (path == "/")
 		path = _config.get_index();
 
-	std::ifstream		requested_file("Configs/" + _config.get_root() + "/" + path);
+	std::ifstream		requested_file(_config.get_root() + path);
 	std::stringstream	buffer;
 
+    std::cout << _config.get_root()  + path << std::endl;
 /* 	std::string ext = path.substr(path.find_last_of('.') + 1);  // A REFAIRE
 
 	if (isAllowedContentType(ext))
@@ -272,7 +299,7 @@ void ResponseHTTP::deleteFile(std::string path)
 	if (path == "/.html")
 		path = "index.html";
 
-	std::string	s		= "Configs/" + _config.get_root() + "/" + path;
+	std::string	s		= _config.get_root() + "/" + path;
 	char *		c_str	= &s[0];
 
 	if (std::remove(c_str) != 0)

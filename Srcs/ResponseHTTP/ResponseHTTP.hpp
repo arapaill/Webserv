@@ -47,7 +47,7 @@ class ResponseHTTP
 		void 		deleteFile( std::string path );
 		bool		getLocation( std::string path, Config & locationConfig );
 		bool		checkReturn( std::string path );
-        void        gen_autoindex();
+        void        gen_autoindex(std::string path );
 
 
 };
