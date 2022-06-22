@@ -6,7 +6,7 @@
 /*   By: jandre <jandre@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/14 09:19:08 by jandre            #+#    #+#             */
-/*   Updated: 2022/06/22 14:46:50 by jandre           ###   ########.fr       */
+/*   Updated: 2022/06/22 16:01:38 by jandre           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,8 +137,6 @@ void CGIhandler::execute_CGI()
 	pid_t		pid;
 	char		**env;
 	std::string	new_body;
-	int			fd[2];
-	int 		fd_in[2];
 	char		**argv;
 
 	try {
@@ -147,69 +145,66 @@ void CGIhandler::execute_CGI()
 	catch (std::bad_alloc &e) {
 		std::cerr << RED << e.what() << RESET << std::endl;
 	}
-	/*
-	if (this->_env["REQUEST_METHOD"] == "POST" && this->_env["QUERY_STRING"].size() > 0)
-	{
-		int size = 1;
-		int	i = 0;
-		std::string::size_type pos = 0;
-		std::string::size_type pos2 = 0;
+	
 
-		while (pos != std::string::npos)
-		{
-			pos = this->_env["QUERY_STRING"].find('&', pos);
-			if (pos != std::string::npos)
-				size++;
-		}
-		argv = new char *[size + 1];
-		pos = 0;
-		std::string tmp;
-		while (pos != std::string::npos)
-		{
-			pos2 = this->_env["QUERY_STRING"].find('&', pos);
-			tmp = this->_env["QUERY_STRING"].substr(pos, pos2);
-			argv[i] = strdup(tmp.c_str());
-			pos = pos2;
-		}
+	FILE *in_file = std::tmpfile();
+	FILE *out_file = std::tmpfile();
+	int fd_in = fileno(in_file);
+	int fd_out = fileno(out_file);
+	int out_save = dup(STDOUT_FILENO);
+	int in_save = dup(STDIN_FILENO);
+
+	pid = fork();
+
+	if (pid == -1)
+	{
+		std::cerr << "Fork crashed." << std::endl;
+		_env["REDIRECT_STATUS"] = "500";
+		_body = "";
+	}
+	else if (!pid)
+	{
+		char * const * nll = NULL;
+
+		dup2(fd_in, STDIN_FILENO);
+		dup2(fd_out, STDOUT_FILENO);
+		execve(_env["PATH_TRANSLATED"].c_str(), nll, env);
+		std::cerr << "Execve crashed." << std::endl;
+		_env["REDIRECT_STATUS"] = "500";
+		_body = "";
+		write(STDOUT_FILENO, "Status: 500\r\n\r\n", 15);
 	}
 	else
 	{
-		argv = new char *[1];
-		argv[0] = strdup(" ");
-	}
-	pipe(fd);
-	pipe(fd_in);
-	pid = fork();
-	if (pid < 0)
-	{
-		std::cerr << "Fork crashed." << RESET << std::endl;
-		this->_env["REDIRECT STATUS"] = "500";
-		this->_body = "Status: 500\r\n\r\n";
-		return ;
-	}
-	if (pid == 0)
-	{
-		std::cout << "Executing CGI\n";
-		close(fd[0]);
-		close(fd_in[1]);
+		char	buffer[65000] = {0};
 
-		dup2(fd[1], STDOUT_FILENO);
-		dup2(fd_in[0], STDIN_FILENO);
+		waitpid(-1, NULL, 0);
+		lseek(fd_out, 0, SEEK_SET);
 
-		close(fd[1]);
-		close(fd_in[0]);
-		execve(this->_env["PATH_INFO"].c_str(), argv, env);
-		std::cout << "Cannot execute " << this->_env["PATH_INFO"] << std::endl;
-		this->_env["REDIRECT STATUS"] = "500";
-		this->_body = "Status: 500\r\n\r\n";
+
+		int ret = 1;
+		while (ret > 0)
+		{
+			memset(buffer, 0, 65000);
+			ret = read(fd_out, buffer, 65000 - 1);
+			new_body += buffer;
+		}
 	}
+	dup2(in_save, STDIN_FILENO);
+	dup2(out_save, STDOUT_FILENO);
+	fclose(in_file);
+	fclose(out_file);
+	close(fd_in);
+	close(fd_out);
+	close(out_save);
+	close(in_save);
 	for (size_t i = 0; env[i]; i++)
 		delete[] env[i];
 	delete[] env;
-	for (size_t i = 0; argv[i]; i++)
-		delete[] argv[i];
-	delete[] argv;*/
+	_env["REDIRECT_STATUS"] = "200";
+	_body = new_body;
 };
 
-std::string & CGIhandler::get_body() { return (this->_body); };
+std::string &	CGIhandler::get_body() { return (this->_body); };
+int				CGIhandler::get_status_code() { return (atoi(this->_env["REDIRECT_STATUS"].c_str())); };
 
