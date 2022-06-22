@@ -35,7 +35,8 @@ void Webserv::run()
 			if (FD_ISSET(*it, &_readySockets)) {
 				if (isServer(*it)) {
 					int clientSocket = acceptNewClient(*it);
-					_clientsFD.push_back(clientSocket);
+					RequestHTTP clientRequest;
+					_clients[clientSocket] = clientRequest;
 					if (clientSocket > _maxSocket)
 						_maxSocket = clientSocket;
 					FD_SET(clientSocket, &_currentSockets);
@@ -43,38 +44,24 @@ void Webserv::run()
 			}
 		}
 
-		for (std::vector<int>::iterator it = _clientsFD.begin() ; it != _clientsFD.end() ;)
+		for (std::map<int, RequestHTTP>::iterator it = _clients.begin() ; it != _clients.end() ;)
 		{
-			if (FD_ISSET(*it, &_readySockets)) {
-				handleRead(*it);
-				FD_CLR(*it, &_currentSockets);
-				if (*it == _maxSocket)
+			if (FD_ISSET(it->first, &_readySockets)) {
+				handleRead(it->first, it->second);
+				FD_CLR(it->first, &_currentSockets);
+				if (it->first == _maxSocket)
 					_maxSocket -= 1;
-				close(*it);
-				it = _clientsFD.erase(it);
+				if (it->second.isOver())
+				{
+					sendResponse(it->first, it->second);
+					close(it->first);
+					it = _clients.erase(it);
+				}
 			}
 			else {
 				++it;
 			}
 		}
-
-	/* 	for (int i = 0 ; i < _maxSocket ; i++) {
-			if (FD_ISSET(i, &_readySockets)) {
-				if (isServer(i)) {
-					int clientSocket = acceptNewClient(i);
-					std::cout << "TEST: " << clientSocket << "\n";
-					if (clientSocket > _maxSocket)
-						_maxSocket = clientSocket;
-					FD_SET(clientSocket, &_currentSockets);
-				}
-				else {
-					handleRead(i);
-					FD_CLR(i, &_currentSockets);
-					if (i == _maxSocket)
-						_maxSocket -= 1;
-				}
-			}
-		} */
 	}
 	closeServers();
 }
@@ -179,15 +166,16 @@ int Webserv::acceptNewClient( int serverSocket )
 	return (clientSocket);
 }
 
-void Webserv::handleRead( int clientFD )
+void Webserv::handleRead( int clientFD, RequestHTTP & parsedRequest )
 {
 	char			request[BUFFER_SIZE + 1] = {0};
 	ssize_t			ret = recv(clientFD, request, BUFFER_SIZE, 0);
 
 	if (ret == -1)
 	{
+		perror("handleRead");
 		std::cerr << RED << "Error: recv() failed" << RESET << std::endl;
-		return ;
+		exit(EXIT_FAILURE);
 	}
 	else if (ret == 0)
 		return ;
@@ -195,16 +183,21 @@ void Webserv::handleRead( int clientFD )
 	{
 		//std::cout << GREEN << "INCOMING DATA :" << RESET << std::endl;
 
-		//std::cout << "-------DEBUG-------\n" << request << "\n-------------------\n";
+		std::cout << "-------DEBUG-------\n" << request << "\n-------------------\n";
 		
-		RequestHTTP		parsedRequest(request);
-		Config			serverConfig = getServerConfig(parsedRequest.getHost());
-		ResponseHTTP	response(serverConfig, parsedRequest);
+		parsedRequest.parse(request);
 
 		std::cout	<<	YELLOW << getTime()
 					<< "<< [Host: "	<< parsedRequest.getHost()		<< "] "
 					<< "[Method: "	<< parsedRequest.getMethod()	<< "] "
 					<< "[File : "	<< parsedRequest.getFile()		<< "]" << RESET << std::endl;
+	}
+}
+
+void Webserv::sendResponse( int clientFD, RequestHTTP parsedRequest )
+{
+		Config			serverConfig = getServerConfig(parsedRequest.getHost());
+		ResponseHTTP	response(serverConfig, parsedRequest);
 
 		if (parsedRequest.getMethod() == "GET")
 			response.GET(parsedRequest.getFile());
@@ -213,6 +206,7 @@ void Webserv::handleRead( int clientFD )
 		else if (parsedRequest.getMethod() == "DELETE")
 			response.DELETE(parsedRequest.getFile());
 
+
 		if (write(clientFD, response.getResponseHTTP().c_str(), response.getResponseHTTP().size()) == -1)
 			std::cerr << RED << "Coulnd't respond to the client." << RESET << std::endl;
 		else
@@ -220,7 +214,6 @@ void Webserv::handleRead( int clientFD )
 			<< ">> [Return Code: " << response.getStatusCode() << "] "
 			<< "[Body Size: " << response.getBodySize() << "]"
 			<< RESET << std::endl << std::endl;
-	}
 }
 
 bool Webserv::isServer( int readyFD )
