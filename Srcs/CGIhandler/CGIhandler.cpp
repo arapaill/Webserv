@@ -6,7 +6,7 @@
 /*   By: jandre <jandre@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/14 09:19:08 by jandre            #+#    #+#             */
-/*   Updated: 2022/06/22 16:23:09 by jandre           ###   ########.fr       */
+/*   Updated: 2022/06/22 17:08:49 by jandre           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,9 +167,10 @@ void CGIhandler::execute_CGI()
 
 		dup2(fd_in, STDIN_FILENO);
 		dup2(fd_out, STDOUT_FILENO);
+		_env["REDIRECT_STATUS"] = "200";
 		execve(_env["PATH_TRANSLATED"].c_str(), nll, env);
-		std::cerr << "Execve crashed." << std::endl;
 		_env["REDIRECT_STATUS"] = "500";
+		std::cerr << "Execve crashed." << std::endl;
 		_body = "";
 	}
 	else
@@ -197,7 +198,6 @@ void CGIhandler::execute_CGI()
 	for (size_t i = 0; env[i]; i++)
 		delete[] env[i];
 	delete[] env;
-	_env["REDIRECT_STATUS"] = "200";
 	std::stringstream 	s;
 	s << new_body.size();
 	_env["CONTENT_LENGTH"] = s.str();
