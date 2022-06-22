@@ -1,14 +1,27 @@
 #include "RequestHTTP.hpp"
 
 // Public
-RequestHTTP::RequestHTTP() 
+RequestHTTP::RequestHTTP() {};
+RequestHTTP::RequestHTTP(RequestHTTP const & cpy) {	*this = cpy; };
+RequestHTTP::~RequestHTTP() {};
+
+RequestHTTP & RequestHTTP::operator=( RequestHTTP const & rhs )
 {
+	_body = rhs._body;
+	_file = rhs._file;
+	_method = rhs._method;
+	_accept = rhs._accept;
+	_host = rhs._host;
+	_transferEncoding = rhs._transferEncoding;
 
-}
+	return (*this);
+};
 
-RequestHTTP::RequestHTTP( std::string request ) 
+void RequestHTTP::parse( std::string request )
 {
 	std::vector<std::string> headers;
+
+	_isOver = true;
 
 	headers = split(request, '\n');
 
@@ -20,28 +33,14 @@ RequestHTTP::RequestHTTP( std::string request )
 	}
 }
 
-RequestHTTP::RequestHTTP(RequestHTTP const & cpy)
-{
-	*this = cpy;
-};
+bool RequestHTTP::isOver() { return (_isOver); };
 
-RequestHTTP & RequestHTTP::operator=(RequestHTTP const & rhs)
-{
-	_body = rhs._body;
-	_file = rhs._file;
-	_method = rhs._method;
-	_accept = rhs._accept;
-	_host = rhs._host;
-	return (*this);
-};
-
-RequestHTTP::~RequestHTTP() {};
-
-std::string					RequestHTTP::getFile()		{ return (_file);	};
-std::string					RequestHTTP::getBody()		{ return (_body);	};
-std::string					RequestHTTP::getMethod()	{ return (_method);	};
-std::vector<std::string>	RequestHTTP::getAccept()	{ return (_accept);	};
-std::string					RequestHTTP::getHost()		{ return (_host);	};
+std::string					RequestHTTP::getFile()				{ return (_file);				};
+std::string					RequestHTTP::getBody()				{ return (_body);				};
+std::string					RequestHTTP::getMethod()			{ return (_method);				};
+std::vector<std::string>	RequestHTTP::getAccept()			{ return (_accept);				};
+std::string					RequestHTTP::getHost()				{ return (_host);				};
+std::string					RequestHTTP::getTransferEncoding()	{ return (_transferEncoding);	};
 
 // Private
 void RequestHTTP::parseKeyword(std::string line)
@@ -58,6 +57,13 @@ void RequestHTTP::parseKeyword(std::string line)
 			_accept = split(split(line, ' ')[1], ',');
 	else if (line.find("Host:") != std::string::npos)	
 		_host = split(line, ' ')[1];
+	else if (line.find("Transfer-Encoding:") != std::string::npos)
+	{
+		_transferEncoding = split(line, ' ')[1];
+		_isOver = false;
+	}
+/* 	else if (line.find("\r") != std::string::npos)
+		_isOver = false; */
 }
 
 std::string RequestHTTP::str_toupper( std::string s )
@@ -69,7 +75,3 @@ std::string RequestHTTP::str_toupper( std::string s )
     	result[i] = std::toupper(s[i],loc);
   	return (result);
 }
-
-// GET / HTTP1.1
-// HOST: 127.0.0.1:5000
-// Accept: fsef,fesfes,
