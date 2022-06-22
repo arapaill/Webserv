@@ -6,7 +6,7 @@
 /*   By: jandre <jandre@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/14 09:19:08 by jandre            #+#    #+#             */
-/*   Updated: 2022/06/22 16:01:38 by jandre           ###   ########.fr       */
+/*   Updated: 2022/06/22 16:15:45 by jandre           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -202,9 +202,13 @@ void CGIhandler::execute_CGI()
 		delete[] env[i];
 	delete[] env;
 	_env["REDIRECT_STATUS"] = "200";
+	std::stringstream 	s;
+	s << new_body.size();
+	_env["CONTENT_LENGTH"] = s.str();
 	_body = new_body;
 };
 
 std::string &	CGIhandler::get_body() { return (this->_body); };
 int				CGIhandler::get_status_code() { return (atoi(this->_env["REDIRECT_STATUS"].c_str())); };
+std::string &	CGIhandler::get_content_type() { return (this->_env["CONTENT_TYPE"]); };
 
