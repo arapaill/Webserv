@@ -34,12 +34,25 @@ void ResponseHTTP::GET(std::string path)
 		return;
 	}
 
+	if (_request.getFile().substr(0, 8) == "/cgi-bin")
+	{
+		CGIhandler cgi(_request, _config, path);
+		cgi.init_env();
+		cgi.execute_CGI();
+		this->_body = cgi.get_body();
+		_statusCode = generateStatusCode(cgi.get_status_code());
+		if (_body.substr(0, 15) == "<!doctype html>")
+			_directives["Content-Type"] = "text/html";
+		else
+			_directives["Content-Type"] = "text/plain";
+		_directives["Content-Length"] = std::to_string(_body.size());
+	}
 	/* Pour les CGI
 	** if (_request.getFile() == "/CGI_folder")
 	** 		my_cgi_function(); (Mets le résultat de l'éxecution du programme dans la variable _body)
 	** else */
-
-	generateBody(path);
+	else
+		generateBody(path);
 	createStatusLine();
 	createHeaders();
 }

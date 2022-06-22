@@ -6,7 +6,7 @@
 /*   By: jandre <jandre@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/14 09:19:08 by jandre            #+#    #+#             */
-/*   Updated: 2022/06/22 16:20:25 by jandre           ###   ########.fr       */
+/*   Updated: 2022/06/22 16:23:09 by jandre           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,7 @@ void CGIhandler::init_env()
 	{
 		content_type += *it;
 		if (it + 1 != accept_type.end())
-			content_type += ", ";
+			content_type += ",";
 	}
 	
     //this->_env["AUTH_TYPE"] = "";											//SHOULD
