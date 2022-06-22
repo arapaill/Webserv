@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGIhandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jandre <ajuln@hotmail.fr>                  +#+  +:+       +#+        */
+/*   By: jandre <jandre@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/14 09:19:08 by jandre            #+#    #+#             */
-/*   Updated: 2022/06/16 17:12:26 by jandre           ###   ########.fr       */
+/*   Updated: 2022/06/22 17:08:49 by jandre           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void CGIhandler::init_env()
 	std::string::size_type pos2 = this->_path.find('/');
 	while (pos2 != std::string::npos) //find the last occurence of '/' before the '?' so we can find the script_name
 	{
-		std::string::size_type tmp = pos2;
+		std::string::size_type tmp = pos2 + 1;
 		pos2 = this->_path.find('/', tmp);
 		if (pos2 == std::string::npos || pos2 > pos)
 		{
@@ -66,7 +66,7 @@ void CGIhandler::init_env()
     if (pos != std::string::npos) // take the path before the query string (separated by a '?')
     {
 		path_info = this->_path.substr(0, pos);
-		query_string = this->_path.substr(pos, std::string::npos);
+		query_string = this->_path.substr(pos + 1, std::string::npos);
     }
     else // No Query_string
     {
@@ -76,15 +76,17 @@ void CGIhandler::init_env()
 
 	//every MIME type accepted, need to parse all the vector into one string
 	std::string content_type = "";
+	std::vector<std::string> accept_type = this->_request.getAccept();
 	
-	for (std::vector<std::string>::iterator it = this->_request.getAccept().begin(); it != this->_request.getAccept().end(); it++)
+	for (std::vector<std::string>::iterator it = accept_type.begin(); it != accept_type.end(); it++)
 	{
 		content_type += *it;
-		content_type += ", ";
+		if (it + 1 != accept_type.end())
+			content_type += ",";
 	}
 	
     //this->_env["AUTH_TYPE"] = "";											//SHOULD
-    this->_env["CONTENT LENGTH"] = "";										//MUST
+    this->_env["CONTENT LENGTH"] = "0";										//MUST
     this->_env["CONTENT_TYPE"] = content_type;								//MUST
     this->_env["GATEWAY_INTERFACE"] = "CGI/1.1";							//MUST
     //this->_env["HTTP_ACCEPT"] = ;											//MAY
@@ -134,10 +136,8 @@ void CGIhandler::execute_CGI()
 	pid_t		pid;
 	char		**env;
 	std::string	new_body;
-	int			fd[2];
-	int 		fd_in[2];
-	char		**argv;
 
+	//GETTING the env variable as a char ** for execve
 	try {
 		env = this->get_env_as_char_array();
 	}
@@ -145,68 +145,66 @@ void CGIhandler::execute_CGI()
 		std::cerr << RED << e.what() << RESET << std::endl;
 	}
 	
-	if (this->_env["REQUEST_METHOD"] == "POST" && this->_env["QUERY_STRING"].size() > 0)
-	{
-		int size = 1;
-		int	i = 0;
-		std::string::size_type pos = 0;
-		std::string::size_type pos2 = 0;
+	//temp file creation for execve out
+	FILE *in_file = std::tmpfile();
+	FILE *out_file = std::tmpfile();
+	int fd_in = fileno(in_file);
+	int fd_out = fileno(out_file);
+	int out_save = dup(STDOUT_FILENO);
+	int in_save = dup(STDIN_FILENO);
 
-		while (pos != std::string::npos)
-		{
-			pos = this->_env["QUERY_STRING"].find('&', pos);
-			if (pos != std::string::npos)
-				size++;
-		}
-		argv = new char *[size + 1];
-		pos = 0;
-		std::string tmp;
-		while (pos != std::string::npos)
-		{
-			pos2 = this->_env["QUERY_STRING"].find('&', pos);
-			tmp = this->_env["QUERY_STRING"].substr(pos, pos2);
-			argv[i] = strdup(tmp.c_str());
-			pos = pos2;
-		}
+	//Execve part
+	pid = fork();
+	if (pid == -1)
+	{
+		std::cerr << "Fork crashed." << std::endl;
+		_env["REDIRECT_STATUS"] = "500";
+		_body = "";
+	}
+	else if (!pid)
+	{
+		char * const * nll = NULL;
+
+		dup2(fd_in, STDIN_FILENO);
+		dup2(fd_out, STDOUT_FILENO);
+		_env["REDIRECT_STATUS"] = "200";
+		execve(_env["PATH_TRANSLATED"].c_str(), nll, env);
+		_env["REDIRECT_STATUS"] = "500";
+		std::cerr << "Execve crashed." << std::endl;
+		_body = "";
 	}
 	else
 	{
-		argv = new char *[1];
-		argv[0] = strdup(" ");
-	}
-	pipe(fd);
-	pipe(fd_in);
-	pid = fork();
-	if (pid < 0)
-	{
-		std::cerr << "Fork crashed." << RESET << std::endl;
-		this->_env["REDIRECT STATUS"] = "500";
-		this->_body = "Status: 500\r\n\r\n";
-		return ;
-	}
-	if (pid == 0)
-	{
-		std::cout << "Executing CGI\n";
-		close(fd[0]);
-		close(fd_in[1]);
+		char	buffer[65000] = {0};
 
-		dup2(fd[1], STDOUT_FILENO);
-		dup2(fd_in[0], STDIN_FILENO);
-
-		close(fd[1]);
-		close(fd_in[0]);
-		execve(this->_env["PATH_INFO"].c_str(), argv, env);
-		std::cout << "Cannot execute " << this->_env["PATH_INFO"] << std::endl;
-		this->_env["REDIRECT STATUS"] = "500";
-		this->_body = "Status: 500\r\n\r\n";
+		waitpid(-1, NULL, 0);
+		lseek(fd_out, 0, SEEK_SET);
+		int ret = 1;
+		while (ret > 0)
+		{
+			memset(buffer, 0, 65000);
+			ret = read(fd_out, buffer, 65000 - 1);
+			new_body += buffer;
+		}
 	}
+	dup2(in_save, STDIN_FILENO);
+	dup2(out_save, STDOUT_FILENO);
+	fclose(in_file);
+	fclose(out_file);
+	close(fd_in);
+	close(fd_out);
+	close(out_save);
+	close(in_save);
 	for (size_t i = 0; env[i]; i++)
 		delete[] env[i];
 	delete[] env;
-	for (size_t i = 0; argv[i]; i++)
-		delete[] argv[i];
-	delete[] argv;
+	std::stringstream 	s;
+	s << new_body.size();
+	_env["CONTENT_LENGTH"] = s.str();
+	_body = new_body;
 };
 
-std::string & CGIhandler::get_body() { return (this->_body); };
+std::string &	CGIhandler::get_body() { return (this->_body); };
+int				CGIhandler::get_status_code() { return (atoi(this->_env["REDIRECT_STATUS"].c_str())); };
+std::string &	CGIhandler::get_content_type() { return (this->_env["CONTENT_TYPE"]); };
 

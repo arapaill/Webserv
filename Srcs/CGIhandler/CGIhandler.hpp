@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGIhandler.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jandre <ajuln@hotmail.fr>                  +#+  +:+       +#+        */
+/*   By: jandre <jandre@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/14 09:19:04 by jandre            #+#    #+#             */
-/*   Updated: 2022/06/16 16:24:05 by jandre           ###   ########.fr       */
+/*   Updated: 2022/06/22 16:15:52 by jandre           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,8 @@ class CGIhandler {
 		std::string		& get_body();
 		void			execute_CGI();
 		char			**get_env_as_char_array();
+		int				get_status_code();
+		std::string 	& get_content_type();
 };
 
 #endif

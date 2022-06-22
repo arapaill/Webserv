@@ -3,6 +3,7 @@
 
 # include "../../Includes/headers.hpp"
 # include "../RequestHTTP/RequestHTTP.hpp"
+# include "../CGIhandler/CGIhandler.hpp"
 
 class ResponseHTTP
 {
