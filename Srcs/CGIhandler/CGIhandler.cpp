@@ -6,7 +6,7 @@
 /*   By: jandre <jandre@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/14 09:19:08 by jandre            #+#    #+#             */
-/*   Updated: 2022/06/22 16:15:45 by jandre           ###   ########.fr       */
+/*   Updated: 2022/06/22 16:20:25 by jandre           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,7 +122,6 @@ char **CGIhandler::get_env_as_char_array()
 
 	for (std::map<std::string, std::string>::const_iterator it = this->_env.begin(); it != this->_env.end(); it++)
 	{
-		std::cout << it->first << " = " << it->second << std::endl;
 		std::string	element = it->first + "=" + it->second;
 		result[j] = new char[element.size() + 1];
 		result[j] = strcpy(result[j], (const char*)element.c_str());
@@ -137,8 +136,8 @@ void CGIhandler::execute_CGI()
 	pid_t		pid;
 	char		**env;
 	std::string	new_body;
-	char		**argv;
 
+	//GETTING the env variable as a char ** for execve
 	try {
 		env = this->get_env_as_char_array();
 	}
@@ -146,7 +145,7 @@ void CGIhandler::execute_CGI()
 		std::cerr << RED << e.what() << RESET << std::endl;
 	}
 	
-
+	//temp file creation for execve out
 	FILE *in_file = std::tmpfile();
 	FILE *out_file = std::tmpfile();
 	int fd_in = fileno(in_file);
@@ -154,8 +153,8 @@ void CGIhandler::execute_CGI()
 	int out_save = dup(STDOUT_FILENO);
 	int in_save = dup(STDIN_FILENO);
 
+	//Execve part
 	pid = fork();
-
 	if (pid == -1)
 	{
 		std::cerr << "Fork crashed." << std::endl;
@@ -172,7 +171,6 @@ void CGIhandler::execute_CGI()
 		std::cerr << "Execve crashed." << std::endl;
 		_env["REDIRECT_STATUS"] = "500";
 		_body = "";
-		write(STDOUT_FILENO, "Status: 500\r\n\r\n", 15);
 	}
 	else
 	{
@@ -180,8 +178,6 @@ void CGIhandler::execute_CGI()
 
 		waitpid(-1, NULL, 0);
 		lseek(fd_out, 0, SEEK_SET);
-
-
 		int ret = 1;
 		while (ret > 0)
 		{
