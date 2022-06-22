@@ -41,10 +41,7 @@ void ResponseHTTP::GET(std::string path)
 		cgi.execute_CGI();
 		this->_body = cgi.get_body();
 		_statusCode = generateStatusCode(cgi.get_status_code());
-		if (_body.substr(0, 15) == "<!doctype html>")
-			_directives["Content-Type"] = "text/html";
-		else
-			_directives["Content-Type"] = "text/plain";
+		_directives["Content-Type"] = "text/html";
 		_directives["Content-Length"] = std::to_string(_body.size());
 	}
 	/* Pour les CGI
