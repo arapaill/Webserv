@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGIhandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jandre <ajuln@hotmail.fr>                  +#+  +:+       +#+        */
+/*   By: jandre <jandre@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/14 09:19:08 by jandre            #+#    #+#             */
-/*   Updated: 2022/06/16 17:12:26 by jandre           ###   ########.fr       */
+/*   Updated: 2022/06/22 14:46:50 by jandre           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void CGIhandler::init_env()
 	std::string::size_type pos2 = this->_path.find('/');
 	while (pos2 != std::string::npos) //find the last occurence of '/' before the '?' so we can find the script_name
 	{
-		std::string::size_type tmp = pos2;
+		std::string::size_type tmp = pos2 + 1;
 		pos2 = this->_path.find('/', tmp);
 		if (pos2 == std::string::npos || pos2 > pos)
 		{
@@ -66,7 +66,7 @@ void CGIhandler::init_env()
     if (pos != std::string::npos) // take the path before the query string (separated by a '?')
     {
 		path_info = this->_path.substr(0, pos);
-		query_string = this->_path.substr(pos, std::string::npos);
+		query_string = this->_path.substr(pos + 1, std::string::npos);
     }
     else // No Query_string
     {
@@ -76,15 +76,17 @@ void CGIhandler::init_env()
 
 	//every MIME type accepted, need to parse all the vector into one string
 	std::string content_type = "";
+	std::vector<std::string> accept_type = this->_request.getAccept();
 	
-	for (std::vector<std::string>::iterator it = this->_request.getAccept().begin(); it != this->_request.getAccept().end(); it++)
+	for (std::vector<std::string>::iterator it = accept_type.begin(); it != accept_type.end(); it++)
 	{
 		content_type += *it;
-		content_type += ", ";
+		if (it + 1 != accept_type.end())
+			content_type += ", ";
 	}
 	
     //this->_env["AUTH_TYPE"] = "";											//SHOULD
-    this->_env["CONTENT LENGTH"] = "";										//MUST
+    this->_env["CONTENT LENGTH"] = "0";										//MUST
     this->_env["CONTENT_TYPE"] = content_type;								//MUST
     this->_env["GATEWAY_INTERFACE"] = "CGI/1.1";							//MUST
     //this->_env["HTTP_ACCEPT"] = ;											//MAY
@@ -120,6 +122,7 @@ char **CGIhandler::get_env_as_char_array()
 
 	for (std::map<std::string, std::string>::const_iterator it = this->_env.begin(); it != this->_env.end(); it++)
 	{
+		std::cout << it->first << " = " << it->second << std::endl;
 		std::string	element = it->first + "=" + it->second;
 		result[j] = new char[element.size() + 1];
 		result[j] = strcpy(result[j], (const char*)element.c_str());
@@ -144,7 +147,7 @@ void CGIhandler::execute_CGI()
 	catch (std::bad_alloc &e) {
 		std::cerr << RED << e.what() << RESET << std::endl;
 	}
-	
+	/*
 	if (this->_env["REQUEST_METHOD"] == "POST" && this->_env["QUERY_STRING"].size() > 0)
 	{
 		int size = 1;
@@ -205,7 +208,7 @@ void CGIhandler::execute_CGI()
 	delete[] env;
 	for (size_t i = 0; argv[i]; i++)
 		delete[] argv[i];
-	delete[] argv;
+	delete[] argv;*/
 };
 
 std::string & CGIhandler::get_body() { return (this->_body); };
