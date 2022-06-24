@@ -57,7 +57,6 @@ void    Parser::init_vector_string(void)
 			count++;
 		if (string_file.find('}') != std::string::npos)
 			count--;
-       // std::cout << "[" << string_file << "]" << std::endl;
 		if(string_file.back() != ';' && string_file.back() != '}' && string_file.back() != '{')
 		{
 			std::cout << RED << "Error: config file: line must finnish with ;, { or }\n" << RESET;
@@ -91,7 +90,6 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 		info = vector_string.at(i);
 		if (info.find("#") != std::string::npos)
 			info.erase(info.find("#"));
-	   	//std::cout << "INFO: " << info << std::endl;
 		if (info.find("listen ") != std::string::npos)
 			is_listen(info, config);
 		else if (info.find("server_name ") != std::string::npos)
@@ -104,7 +102,6 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 			is_index(info, config);
 		else if (info.find("location ") != std::string::npos)
 		{
-           // std::cout << vector_string.at(i) << std::endl;
 			vector_info.push_back(info);
 			while(info.find("}") == std::string::npos)
 			{
@@ -112,7 +109,6 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 				info = vector_string.at(i);
 				vector_info.push_back(info);
 			}
-           // std::cout << vector_string.at(i) << std::endl;
 			is_location(vector_info, config);
             vector_info.clear();
 		}
@@ -125,10 +121,7 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 		else if (info.find("alias ") != std::string::npos)
 			is_alias(info, config);
 		else if (info.find("allow_methods ") != std::string::npos)
-        {
 			is_allow_methods(info, config);
-            //std::cout << config.get_location().rbegin()->second.get_methods().size() << std::endl;
-        }
 		else if (info.find("return ") != std ::string::npos)
 			is_return(info, config);
         
@@ -162,21 +155,4 @@ void    Parser::parse(void)
 		get_info(_allblock.at(i), _config_file);
 		_vector_Config.push_back(_config_file);
 	}
-	//std::cout << _vector_Config.at(0).get_port() << std::endl;
-    //std::cout << _vector_Config.at(0).get_host().s_addr << std::endl;
-    //std::cout << _vector_Config.at(0).get_host_name() << std::endl;
-    //std::cout <<  _vector_Config.at(0).get_location().begin()->second.get_server_name() << std::endl;
-    //std::cout <<  _vector_Config.at(0).get_location().rbegin()->second.get_server_name() << std::endl;
-    //std::cout <<  _vector_Config.at(0).get_location().begin()->second.get_location().begin()->second.get_server_name() << std::endl;
 }
-
-/*
-int main()
-{
-	Parser pars;
-	std::vector<Config> conffile;
-
-	pars.parse();
-	return(0);
-}
-*/

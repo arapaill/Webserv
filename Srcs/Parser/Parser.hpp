@@ -13,7 +13,7 @@ class Parser
 
         Parser & operator=(const Parser &rhs);
         
-        void    init_vector_string(void); // while loop that put .conf file in vector
+        void    init_vector_string(void);
         void	init_config_file(void);
         void    parse(void);
         void    get_info(std::vector<std::string> vector_string, Config &config);
