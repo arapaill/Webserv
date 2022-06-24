@@ -177,7 +177,7 @@ void    Parser::is_client_max_body_size(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
     cmd = split(info, ' ');
-     if(cmd.size() < 2)
+    if(cmd.size() < 2)
     {
         std::cout << RED << "not enough directives for clien max body size\n" << RESET;
         exit(1);
@@ -195,6 +195,16 @@ void    Parser::is_error_page(std::string info, Config &config)
     std::vector<std::string> cmd;
     cmd = split(info, ' ');
 
+    if(cmd.size() < 3)
+    {
+        std::cout << RED << "not enough directives for error page\n" << RESET;
+        exit(1);
+    }
+    if(cmd.size() > 3)
+    {
+        std::cout << RED << "too much directives for error page\n" << RESET;
+        exit(1);
+    }
     config.get_error_page()[atoi(cmd.at(1).c_str())] = cmd.at(2);
    // std::cout << config.get_error_page()[atoi(cmd.at(1).c_str())];
 }
@@ -204,6 +214,16 @@ void    Parser::is_return(std::string info, Config &config)
     std::vector<std::string> cmd;
     cmd = split(info, ' ');
 
+    if(cmd.size() < 3)
+    {
+        std::cout << RED << "not enough directives for return\n" << RESET;
+        exit(1);
+    }
+    if(cmd.size() > 3)
+    {
+        std::cout << RED << "too much directives for return\n" << RESET;
+        exit(1);
+    }
     config.get_return()[atoi(cmd.at(1).c_str())] = cmd.at(2);
    // std::cout << config.get_error_page()[atoi(cmd.at(1).c_str())];
 }
@@ -213,6 +233,16 @@ void    Parser::is_fastcgi_param(std::string info, Config &config)
     std::vector<std::string> cmd;
     cmd = split(info, ' ');
 
+    if(cmd.size() < 2)
+    {
+        std::cout << RED << "not enough directives for fastcgi_param\n" << RESET;
+        exit(1);
+    }
+    if(cmd.size() > 2)
+    {
+        std::cout << RED << "too much directives for fastcgi_param\n" << RESET;
+        exit(1);
+    }
     config.set_cgi_pass(cmd.at(1));
 }
 
