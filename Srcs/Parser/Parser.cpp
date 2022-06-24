@@ -51,12 +51,13 @@ void    Parser::init_vector_string(void)
 			string_file.clear();
 			continue;
 		}
-		if (isspace(string_file.back()))
+		while (isspace(string_file.back()))
 			string_file.resize(string_file.size() - 1);
 		if (string_file.find('{')  != std::string::npos)
 			count++;
 		if (string_file.find('}') != std::string::npos)
 			count--;
+       // std::cout << "[" << string_file << "]" << std::endl;
 		if(string_file.back() != ';' && string_file.back() != '}' && string_file.back() != '{')
 		{
 			std::cout << RED << "Error: config file: line must finnish with ;, { or }\n" << RESET;
@@ -65,9 +66,7 @@ void    Parser::init_vector_string(void)
 		}
 		if(string_file.back() == ';')
 			string_file.resize(string_file.size() - 1);
-
 		vector_string.push_back(string_file);
-		//std::cout << string_file << std::endl;
 		if (count == 0)
 		{
 			_allblock.push_back(vector_string);
