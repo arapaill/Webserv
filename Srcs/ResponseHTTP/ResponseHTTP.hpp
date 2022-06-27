@@ -31,6 +31,7 @@ class ResponseHTTP
 		std::map<int, std::string>			_statusCodes;
 
 		bool								_getLocationFirst;
+		bool								_isCgi();
 
 		void		createStatusLine();
 		void		createHeaders();

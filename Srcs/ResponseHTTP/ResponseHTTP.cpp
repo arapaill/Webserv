@@ -96,6 +96,29 @@ void ResponseHTTP::DELETE(std::string path)
 	createHeaders();
 }
 
+bool ResponseHTTP::_isCgi()
+{
+	std::string path = _request.getFile();
+	std::string comp;
+	std::vector<std::string> cgi_cond = _config.get_cgi_pass();
+
+	if (path.substr(0, 8) == "/cgi-bin")
+		return (true);
+	for (std::vector<std::string>::iterator it = cgi_cond.begin(); it != cgi_cond.end(); it++)
+	{
+		comp = *it;
+		if (path.substr(0, comp.size()) == comp)
+			return (true);
+	}
+	for (std::vector<std::string>::iterator it = cgi_cond.begin(); it != cgi_cond.end(); it++)
+	{
+		comp = *it;
+		if (path.substr(path.size() - comp.size(), comp.size()) == comp)
+			return (true);
+	}
+	return (false);
+}
+
 bool ResponseHTTP::checkConfig(std::string path, std::string method)
 {
 	if (!isAllowedMethod(method, _config.get_root() + path))
