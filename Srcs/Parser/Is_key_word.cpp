@@ -232,7 +232,7 @@ void    Parser::is_fastcgi_param(std::string info, Config &config)
         std::cout << RED << "too much directives for fastcgi_param\n" << RESET;
         exit(1);
     }
-    config.set_cgi_pass(cmd.at(1));
+    config.get_cgi_pass().push_back(cmd.at(1));
 }
 
 void    Parser::is_alias(std::string info, Config &config)
