@@ -6,7 +6,7 @@
 /*   By: jandre <jandre@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/14 09:19:08 by jandre            #+#    #+#             */
-/*   Updated: 2022/06/28 18:00:39 by jandre           ###   ########.fr       */
+/*   Updated: 2022/06/28 18:01:58 by jandre           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,13 +120,12 @@ char **CGIhandler::get_env_as_char_array()
 char **CGIhandler::get_arg_as_char_array()
 {
 	std::string query = _env["QUERY_STRING"];
-	char *str_query = query.c_str();
 	int size = 1;
 	int i = 0;
 
-	while (str_query[i])
+	while (query.c_str()[i])
 	{
-		if (str_query == '&')
+		if (query.c_str()[i] == '&')
 			size++;
 		i++;
 	}

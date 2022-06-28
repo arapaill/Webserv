@@ -38,7 +38,7 @@ void ResponseHTTP::GET(std::string path)
 	{
 		CGIhandler cgi(_request, _config, path);
 		cgi.init_env();
-		cgi.execute_CGI();
+		cgi.execute_CGI_GET();
 		this->_body = cgi.get_body();
 		_statusCode = generateStatusCode(cgi.get_status_code());
 		_directives["Content-Type"] = "text/html";
