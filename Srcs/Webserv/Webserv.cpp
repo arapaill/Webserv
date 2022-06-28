@@ -78,10 +78,9 @@ void Webserv::init()
 
 void Webserv::launchServers()
 {
-	for (std::vector<Config>::iterator it = _serversConfig.begin(); it != _serversConfig.end(); it++)
-	{
+	for (std::vector<Config>::iterator it = _serversConfig.begin(); it != _serversConfig.end(); it++) {
 		std::cout << YELLOW << getTime() << "Launching server « " << it->get_server_name() << " »..." << RESET << std::endl;
-		int serverSocket = initSocket(*it);
+		int serverSocket = initServerSocket(*it);
 		_serversFD.push_back(serverSocket);
 		FD_SET(serverSocket, &_currentSockets);
 		_maxSocket = serverSocket;
@@ -101,26 +100,22 @@ void Webserv::closeServers()
 ** ainsi que le port renseigné dans le fichier config.
 ** Le socket est réutilisable et non-bloquant.
 */
-int Webserv::initSocket( Config serverConfig )
+int Webserv::initServerSocket( Config serverConfig )
 {
 	int 				serverSocket;
 	struct sockaddr_in 	serverAddress;
 
 	fcntl(serverSocket, F_SETFL, O_NONBLOCK);
-	if ((serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
-	{
-		closeSockets();
+	if ((serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+		closeServers();
 		throw (std::logic_error("Error: socket() failed"));
 	}
 
-	/* 
-	** Permet de réutiliser directement un socket lorsqu'on relance le programme.
-	*/
-	int		optVal = 1;
-	int		optLen = sizeof(optVal);
-	if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &optVal, optLen) < 0)
-	{
-		closeSockets();
+	// Permet de réutiliser directement un socket lorsqu'on relance le programme.
+	int optVal = 1;
+	int optLen = sizeof(optVal);
+	if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &optVal, optLen) < 0) {
+		closeServers();
 		throw (std::logic_error("Error: setsockopt(SO_REUSEADDR) failed"));
 	}
 
@@ -129,15 +124,13 @@ int Webserv::initSocket( Config serverConfig )
 	serverAddress.sin_addr.s_addr = serverConfig.get_host().s_addr;
 	serverAddress.sin_port = htons(serverConfig.get_port());
 
-	if (bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)
-	{
-		closeSockets();
+	if (bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) {
+		closeServers();
 		throw (std::logic_error("Error: bind() failed"));
 	}
 	
-	if (listen(serverSocket, MAX_CLIENTS) < 0)
-	{
-		closeSockets();
+	if (listen(serverSocket, MAX_CLIENTS) < 0) {
+		closeServers();
 		throw (std::logic_error("Error: listen() failed"));
 	}
 
@@ -148,17 +141,14 @@ int Webserv::acceptNewClient( int serverSocket )
 {
 	int clientSocket;
 
-	if ((clientSocket = accept(serverSocket, NULL, NULL)) < 0)
-	{
-		if (errno != EWOULDBLOCK)
-		{
+	if ((clientSocket = accept(serverSocket, NULL, NULL)) < 0) {
+		if (errno != EWOULDBLOCK) {
 			 std::cerr << RED << "Error: accept() failed" << RESET << std::endl;
 			 return (-1);
 		}
 	}
 
-	if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) < 0)
-	{
+	if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) < 0) {
 		std::cerr << RED << "Error: fcntl() failed" << RESET << std::endl;
 		return (-1);
 	}
@@ -168,29 +158,44 @@ int Webserv::acceptNewClient( int serverSocket )
 
 void Webserv::handleRead( int clientFD, RequestHTTP & parsedRequest )
 {
-	char			request[BUFFER_SIZE + 1] = {0};
-	ssize_t			ret = recv(clientFD, request, BUFFER_SIZE, 0);
+	char	request[BUFFER_SIZE + 1] = {0};
+	ssize_t	ret;
+	
+	ret = recv(clientFD, request, BUFFER_SIZE, 0);
 
-	if (ret == -1)
-	{
-		perror("handleRead");
-		std::cerr << RED << "Error: recv() failed" << RESET << std::endl;
-		exit(EXIT_FAILURE);
+	parsedRequest.setRequest(request);
+
+	//std::cout << "End of request: (" << &request[ret-2] << ")\nRet: " << ret << "\n";
+	//std::cout << "-------DEBUG-------\n" << parsedRequest.getRequest() << "\n-------------------\n";
+	
+	if (parsedRequest.getRequest().find("\r\n\r\n") != std::string::npos) {
+		if (parsedRequest.getRequest().find("Content-Length: ") == std::string::npos) {
+			if (parsedRequest.getRequest().find("Transfer-Encoding: chunked") != std::string::npos) {
+				if (checkEnd(parsedRequest.getRequest(), "0\r\n\r\n") == 0)
+					parsedRequest.setIsOver(true);
+			}
+			else
+				parsedRequest.setIsOver(true);
+		}
 	}
-	else if (ret == 0)
+
+	if (ret == -1) {
+		// Remplit trop l'écran
+		//std::cerr << RED << getTime() << "Error recv(): " << strerror(errno) << RESET << std::endl;
 		return ;
-	else
-	{
-		//std::cout << GREEN << "INCOMING DATA :" << RESET << std::endl;
+	}
 
-		std::cout << "-------DEBUG-------\n" << request << "\n-------------------\n";
-		
-		parsedRequest.parse(request);
+	if (parsedRequest.isOver()) {
+		parsedRequest.parse();
 
-		std::cout	<<	YELLOW << getTime()
-					<< "<< [Host: "	<< parsedRequest.getHost()		<< "] "
-					<< "[Method: "	<< parsedRequest.getMethod()	<< "] "
-					<< "[File : "	<< parsedRequest.getFile()		<< "]" << RESET << std::endl;
+		//std::cout << "-------DEBUG-------\n" << parsedRequest.getRequest() << "\n-------------------\n";
+
+		if (parsedRequest.isOver()) {
+			std::cout	<<	YELLOW << getTime()
+						<< "<< [Host: "	<< parsedRequest.getHost()		<< "] "
+						<< "[Method: "	<< parsedRequest.getMethod()	<< "] "
+						<< "[File : "	<< parsedRequest.getFile()		<< "]" << RESET << std::endl;
+		}
 	}
 }
 
@@ -205,6 +210,8 @@ void Webserv::sendResponse( int clientFD, RequestHTTP parsedRequest )
 			response.POST(parsedRequest.getFile());
 		else if (parsedRequest.getMethod() == "DELETE")
 			response.DELETE(parsedRequest.getFile());
+		else
+			response.UNKNOWN(parsedRequest.getFile());
 
 
 		if (write(clientFD, response.getResponseHTTP().c_str(), response.getResponseHTTP().size()) == -1)
@@ -224,16 +231,9 @@ bool Webserv::isServer( int readyFD )
 	return (false);
 }
 
-void Webserv::closeSockets()
-{
-	for (std::vector<int>::iterator it = _serversFD.begin() ; it != _serversFD.end() ; it++)
-		close(*it);
-}
-
 Config & Webserv::getServerConfig( std::string host )
 {
-	for (std::vector<Config>::iterator it = _serversConfig.begin() ; it != _serversConfig.end() ; it++)
-	{
+	for (std::vector<Config>::iterator it = _serversConfig.begin() ; it != _serversConfig.end() ; it++) {
 		std::string configHost = it->get_host_name() + ":" + std::to_string(it->get_port());
 		if (host == configHost)
 			return (*it);
@@ -250,5 +250,20 @@ std::string Webserv::getTime()
 	gettimeofday(&tv, NULL);
 	tm = localtime(&tv.tv_sec);
 	strftime(buffer, 32, "[%H:%M:%S] ", tm);
+
 	return (std::string(buffer));
+}
+
+int Webserv::checkEnd(const std::string & str, const std::string & end)
+{
+	size_t	i = str.size();
+	size_t	j = end.size();
+
+	while (j > 0) {
+		i--;
+		j--;
+		if (i < 0 || str[i] != end[j])
+			return (1);
+	}
+	return (0);
 }
