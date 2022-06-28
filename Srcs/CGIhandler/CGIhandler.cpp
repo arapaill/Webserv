@@ -6,7 +6,7 @@
 /*   By: jandre <jandre@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/14 09:19:08 by jandre            #+#    #+#             */
-/*   Updated: 2022/06/22 17:08:49 by jandre           ###   ########.fr       */
+/*   Updated: 2022/06/28 15:41:26 by jandre           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,7 +131,39 @@ char **CGIhandler::get_env_as_char_array()
 	return (result);
 }
 
-void CGIhandler::execute_CGI()
+char **CGIhandler::get_arg_as_char_array()
+{
+	std::string query = _env["QUERY_STRING"];
+	char *str_query = query.c_str();
+	int size = 1;
+	int i = 0;
+
+	while (str_query[i])
+	{
+		if (str_query == '&')
+			size++;
+		i++;
+	}
+
+	char **arg = new char *[size + 1];
+	std::string::size_type pos = 0;
+	std::string::size_type pos2 = query.find('&');
+	std::string element;
+	i = 0;
+	while (pos != std::string::npos)
+	{
+		element = query.substr(pos, pos2).c_str();
+		arg[i] = new char[element.size() + 1];
+		arg[i] = strcpy(arg[i], (const char*)element.c_str());
+		pos = pos2;
+		pos2 = query.find(pos + 1, '&');
+		i++;
+	}
+	arg[i] = NULL;
+	return (arg);
+}
+
+void CGIhandler::execute_CGI_GET()
 {
 	pid_t		pid;
 	char		**env;
@@ -198,6 +230,98 @@ void CGIhandler::execute_CGI()
 	for (size_t i = 0; env[i]; i++)
 		delete[] env[i];
 	delete[] env;
+	std::stringstream 	s;
+	s << new_body.size();
+	_env["CONTENT_LENGTH"] = s.str();
+	_body = new_body;
+};
+
+void CGIhandler::execute_CGI_POST()
+{
+	pid_t		pid;
+	char		**env;
+	char 		**arg;
+	std::string	new_body;
+
+	//GETTING the env variable as a char ** for execve
+	try {
+		env = this->get_env_as_char_array();
+	}
+	catch (std::bad_alloc &e) {
+		std::cerr << RED << e.what() << RESET << std::endl;
+	}
+	if (_env["QUERY_STRING"].size() > 0)
+	{
+		try {
+			arg = this->get_arg_as_char_array();
+		}
+		catch (std::bad_alloc &e) {
+			std::cerr << RED << e.what() << RESET << std::endl;
+		}
+	}
+	
+	//temp file creation for execve out
+	FILE *in_file = std::tmpfile();
+	FILE *out_file = std::tmpfile();
+	int fd_in = fileno(in_file);
+	int fd_out = fileno(out_file);
+	int out_save = dup(STDOUT_FILENO);
+	int in_save = dup(STDIN_FILENO);
+
+	//Execve part
+	pid = fork();
+	if (pid == -1)
+	{
+		std::cerr << "Fork crashed." << std::endl;
+		_env["REDIRECT_STATUS"] = "500";
+		_body = "";
+	}
+	else if (!pid)
+	{
+		char * const * nll = NULL;
+
+		dup2(fd_in, STDIN_FILENO);
+		dup2(fd_out, STDOUT_FILENO);
+		_env["REDIRECT_STATUS"] = "200";
+		if (_env["QUERY_STRING"].size() > 0)
+			execve(_env["PATH_TRANSLATED"].c_str(), arg, env);
+		else
+			execve(_env["PATH_TRANSLATED"].c_str(), nll, env);
+		_env["REDIRECT_STATUS"] = "500";
+		std::cerr << "Execve crashed." << std::endl;
+		_body = "";
+	}
+	else
+	{
+		char	buffer[65000] = {0};
+
+		waitpid(-1, NULL, 0);
+		lseek(fd_out, 0, SEEK_SET);
+		int ret = 1;
+		while (ret > 0)
+		{
+			memset(buffer, 0, 65000);
+			ret = read(fd_out, buffer, 65000 - 1);
+			new_body += buffer;
+		}
+	}
+	dup2(in_save, STDIN_FILENO);
+	dup2(out_save, STDOUT_FILENO);
+	fclose(in_file);
+	fclose(out_file);
+	close(fd_in);
+	close(fd_out);
+	close(out_save);
+	close(in_save);
+	for (size_t i = 0; env[i]; i++)
+		delete[] env[i];
+	delete[] env;
+	if (_env["QUERY_STRING"].size() > 0)
+	{
+		for (size_t i = 0; env[i]; i++)
+			delete[] arg[i];
+		delete[] arg;
+	}
 	std::stringstream 	s;
 	s << new_body.size();
 	_env["CONTENT_LENGTH"] = s.str();
