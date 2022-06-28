@@ -6,7 +6,7 @@
 /*   By: jandre <jandre@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/14 09:19:08 by jandre            #+#    #+#             */
-/*   Updated: 2022/06/28 15:41:26 by jandre           ###   ########.fr       */
+/*   Updated: 2022/06/28 18:00:39 by jandre           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,24 +45,10 @@ void CGIhandler::init_env()
 
 	//get everything from the path, path will have this form : /path_to_cgi/some_other_directories/cgi_script?query_string
 	std::string			path_info;
-	std::string			script_name;
 	std::string			query_string;
 
 	std::string::size_type pos = this->_path.find('?');
 	std::string::size_type pos2 = this->_path.find('/');
-	while (pos2 != std::string::npos) //find the last occurence of '/' before the '?' so we can find the script_name
-	{
-		std::string::size_type tmp = pos2 + 1;
-		pos2 = this->_path.find('/', tmp);
-		if (pos2 == std::string::npos || pos2 > pos)
-		{
-			if (pos2 < pos)
-				script_name = this->_path.substr(pos2, pos);
-			else
-				script_name = this->_path.substr(tmp, pos);
-			break ;
-		}
-	}
     if (pos != std::string::npos) // take the path before the query string (separated by a '?')
     {
 		path_info = this->_path.substr(0, pos);
@@ -107,7 +93,7 @@ void CGIhandler::init_env()
     //this->_env["REMOTE_USER"] = "";										//SHOULD
     this->_env["REQUEST_METHOD"] = this->_request.getMethod();				//MAY
     this->_env["REQUEST_URI"] = this->_path;								//MAY
-    this->_env["SCRIPT_NAME"] = script_name;								//MUST
+    this->_env["SCRIPT_NAME"] = this->_config.get_root() + path_info;		//MUST
     this->_env["SERVER_NAME"] = this->_config.get_server_name();			//MUST
     this->_env["SERVER_PORT"] = port;										//MUST
     this->_env["SERVER_PROTOCOL"] = "HTTP/1.1";;							//MUST
