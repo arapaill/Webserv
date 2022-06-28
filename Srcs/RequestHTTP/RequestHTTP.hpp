@@ -11,8 +11,14 @@ class RequestHTTP
 		RequestHTTP(RequestHTTP const & cpy);
 		RequestHTTP & operator=(RequestHTTP const & rhs);
 		
-		void parse( std::string request );
+		void parse();
 		bool isOver();
+
+		void setRequest( std::string request );
+		void setIsOver( bool value ) { _isOver = value; };
+
+		std::string getRequest() { return (_request); };
+
 
 		// Getters
 		std::string					getFile();
@@ -23,12 +29,14 @@ class RequestHTTP
 		std::string					getTransferEncoding();
 
 	private:
+		std::string					_request;
 		std::string					_file;
 		std::string					_body;
 		std::string					_method;
 		std::vector<std::string>	_accept;
 		//std::vector<std::string	_accept-language;
 		std::string					_transferEncoding;
+		std::string					_contentLength;
 		std::string					_host;
 		bool						_isOver;
 
