@@ -96,6 +96,15 @@ void ResponseHTTP::DELETE(std::string path)
 	createHeaders();
 }
 
+void ResponseHTTP::UNKNOWN(std::string path)
+{
+	_directives["Date"] = getDate();
+	_statusCode = generateStatusCode(405);
+
+	createStatusLine();
+	createHeaders();
+}
+
 bool ResponseHTTP::checkConfig(std::string path, std::string method)
 {
 	if (!isAllowedMethod(method, _config.get_root() + path))
@@ -339,8 +348,7 @@ bool ResponseHTTP::isAllowedMethod(std::string method, std::string path)
 	if (configMethods.size() == 0)
 		return (true);
 
-	for (std::vector<std::string>::iterator it = configMethods.begin() ; it != configMethods.end() ; it++)
-	{
+	for (std::vector<std::string>::iterator it = configMethods.begin() ; it != configMethods.end() ; it++) {
 		if (*it == method)
 			return (true);
 	}
@@ -350,6 +358,8 @@ bool ResponseHTTP::isAllowedMethod(std::string method, std::string path)
 
 bool ResponseHTTP::getLocation(std::string path, Config & locationConfig)
 {
+	// path = HTML/TEST/index.html
+
 	std::map<std::string, Config>	location;
 
 	if (_getLocationFirst)

@@ -14,6 +14,8 @@ class ResponseHTTP
 		void		GET( std::string path );
 		void		POST( std::string path );
 		void		DELETE( std::string path );
+		void 		UNKNOWN( std::string path );
+
 
 		// Getter
 		std::string	getResponseHTTP();
