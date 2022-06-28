@@ -6,7 +6,7 @@
 /*   By: jandre <jandre@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/14 09:19:08 by jandre            #+#    #+#             */
-/*   Updated: 2022/06/28 18:01:58 by jandre           ###   ########.fr       */
+/*   Updated: 2022/06/28 18:31:28 by jandre           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,19 +129,20 @@ char **CGIhandler::get_arg_as_char_array()
 			size++;
 		i++;
 	}
-
-	char **arg = new char *[size + 1];
+	char **arg = new char *[size + 2];
 	std::string::size_type pos = 0;
 	std::string::size_type pos2 = query.find('&');
 	std::string element;
-	i = 0;
-	while (pos != std::string::npos)
+	arg[0] = new char[_env["SCRIPT_NAME"].size() + 1];
+	arg[0] = strcpy(arg[0], (const char *)_env["SCRIPT_NAME"].c_str());
+	i = 1;
+	while (i < size + 1)
 	{
-		element = query.substr(pos, pos2).c_str();
+		element = query.substr(pos, pos2 - pos);
 		arg[i] = new char[element.size() + 1];
 		arg[i] = strcpy(arg[i], (const char*)element.c_str());
-		pos = pos2;
-		pos2 = query.find(pos + 1, '&');
+		pos = pos2 + 1;
+		pos2 = query.find('&', pos);
 		i++;
 	}
 	arg[i] = NULL;
@@ -303,7 +304,7 @@ void CGIhandler::execute_CGI_POST()
 	delete[] env;
 	if (_env["QUERY_STRING"].size() > 0)
 	{
-		for (size_t i = 0; env[i]; i++)
+		for (size_t i = 0; arg[i]; i++)
 			delete[] arg[i];
 		delete[] arg;
 	}

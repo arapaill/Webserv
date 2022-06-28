@@ -66,20 +66,30 @@ void ResponseHTTP::POST(std::string path)
 
 	_statusCode = generateStatusCode(204);
 
-	//IF CGI
-	//ELSE ...
-	//Check si le fichier existe change le statut
-	check_file.open(_config.get_root() + path);
-	if (check_file && _request.getBody().size() > 0)
-		_statusCode = generateStatusCode(200);
-	else if (_request.getBody().size() > 0)
-		_statusCode = generateStatusCode(201);
-	check_file.close();
+	if (_request.getFile().substr(0, 8) == "/cgi-bin")
+	{
+		CGIhandler cgi(_request, _config, path);
+		cgi.init_env();
+		cgi.execute_CGI_POST();
+		this->_body = cgi.get_body();
+		_statusCode = generateStatusCode(cgi.get_status_code());
+		_directives["Content-Type"] = "text/html";
+		_directives["Content-Length"] = std::to_string(_body.size());
+	}
+	else
+	{
+		check_file.open(_config.get_root() + path);
+		if (check_file && _request.getBody().size() > 0)
+			_statusCode = generateStatusCode(200);
+		else if (_request.getBody().size() > 0)
+			_statusCode = generateStatusCode(201);
+		check_file.close();
 
-	//open et rajoute le body au fichier
-	file.open(_config.get_root() + path, std::ios_base::app);
-	file << _request.getBody();
-	file.close();
+		//open et rajoute le body au fichier
+		file.open(_config.get_root() + path, std::ios_base::app);
+		file << _request.getBody();
+		file.close();
+	}
 	createStatusLine();
 	createHeaders();
 }
