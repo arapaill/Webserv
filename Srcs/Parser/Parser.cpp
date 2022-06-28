@@ -51,7 +51,7 @@ void    Parser::init_vector_string(void)
 			string_file.clear();
 			continue;
 		}
-		if (isspace(string_file.back()))
+		while (isspace(string_file.back()))
 			string_file.resize(string_file.size() - 1);
 		if (string_file.find('{')  != std::string::npos)
 			count++;
@@ -65,9 +65,7 @@ void    Parser::init_vector_string(void)
 		}
 		if(string_file.back() == ';')
 			string_file.resize(string_file.size() - 1);
-
 		vector_string.push_back(string_file);
-		//std::cout << string_file << std::endl;
 		if (count == 0)
 		{
 			_allblock.push_back(vector_string);
@@ -92,7 +90,6 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 		info = vector_string.at(i);
 		if (info.find("#") != std::string::npos)
 			info.erase(info.find("#"));
-	   	//std::cout << "INFO: " << info << std::endl;
 		if (info.find("listen ") != std::string::npos)
 			is_listen(info, config);
 		else if (info.find("server_name ") != std::string::npos)
@@ -105,7 +102,6 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 			is_index(info, config);
 		else if (info.find("location ") != std::string::npos)
 		{
-           // std::cout << vector_string.at(i) << std::endl;
 			vector_info.push_back(info);
 			while(info.find("}") == std::string::npos)
 			{
@@ -113,7 +109,6 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 				info = vector_string.at(i);
 				vector_info.push_back(info);
 			}
-           // std::cout << vector_string.at(i) << std::endl;
 			is_location(vector_info, config);
             vector_info.clear();
 		}
@@ -121,18 +116,14 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 			is_error_page(info, config);
 		else if (info.find("client_max_body_size ") != std::string::npos)
 			is_client_max_body_size(info, config);
-		else if (info.find("fastcgi_param ") != std::string::npos)
+		else if (info.find("cgi_pass ") != std::string::npos)
 			is_fastcgi_param(info, config);
 		else if (info.find("alias ") != std::string::npos)
 			is_alias(info, config);
 		else if (info.find("allow_methods ") != std::string::npos)
-        {
 			is_allow_methods(info, config);
-            //std::cout << config.get_location().rbegin()->second.get_methods().size() << std::endl;
-        }
 		else if (info.find("return ") != std ::string::npos)
 			is_return(info, config);
-        
         info.clear();
 	}
 }
@@ -144,7 +135,8 @@ void	Parser::init_config_file(void)
 	_config_file.get_index().clear();
 	_config_file.set_autoindex(false);
 	_config_file.set_client_max_body_size(0);
-	_config_file.set_cgi_pass("cgi_bin");
+    _config_file.get_cgi_pass().clear();
+    _config_file.get_cgi_pass().push_back("cgi_bin");
 	_config_file.get_alias().clear();
 	_config_file.get_location().clear();
 	_config_file.get_host().s_addr = inet_addr("0.0.0.0");
@@ -163,21 +155,4 @@ void    Parser::parse(void)
 		get_info(_allblock.at(i), _config_file);
 		_vector_Config.push_back(_config_file);
 	}
-	//std::cout << _vector_Config.at(0).get_port() << std::endl;
-    //std::cout << _vector_Config.at(0).get_host().s_addr << std::endl;
-    //std::cout << _vector_Config.at(0).get_host_name() << std::endl;
-    //std::cout <<  _vector_Config.at(0).get_location().begin()->second.get_server_name() << std::endl;
-    //std::cout <<  _vector_Config.at(0).get_location().rbegin()->second.get_server_name() << std::endl;
-    //std::cout <<  _vector_Config.at(0).get_location().begin()->second.get_location().begin()->second.get_server_name() << std::endl;
 }
-
-/*
-int main()
-{
-	Parser pars;
-	std::vector<Config> conffile;
-
-	pars.parse();
-	return(0);
-}
-*/

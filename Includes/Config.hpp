@@ -36,7 +36,7 @@ class Config
 		void	set_index(std::string index) {_index = index;};
 		void	set_autoindex(bool autoindex) {_autoindex = autoindex;};
 		void	set_client_max_body_size(size_t size) {_client_max_body_size = size;};
-		void	set_cgi_pass(std::string cgi_pass) {_cgi_pass = cgi_pass;};
+		void	set_cgi_pass(std::vector<std::string> cgi_pass) {_cgi_pass = cgi_pass;};
 		void	set_alias(std::string alias) {_alias = alias;};
 		
 		
@@ -50,7 +50,7 @@ class Config
 		size_t							& get_client_max_body_size(void) {return(_client_max_body_size);};
 		std::map<std::string, Config>	& get_location(void) {return(_location);};
 		std::map<int, std::string>		& get_error_page(void) {return(_error_page);};
-		std::string     				& get_cgi_pass(void) {return(_cgi_pass);};
+		std::vector<std::string>  		& get_cgi_pass(void) {return(_cgi_pass);};
 		std::string     				& get_alias(void) {return(_alias);};
 		std::vector<std::string> 		& get_methods(void) {return(_methods);};
 		std::map<int, std::string> 		& get_return(void) {return(_return);};
@@ -66,7 +66,7 @@ class Config
 		size_t							_client_max_body_size;
 		std::map<std::string, Config>	_location;
 		std::map<int, std::string>      _error_page;
-		std::string                     _cgi_pass;
+		std::vector<std::string>        _cgi_pass;
 		std::string						_alias;
 		std::vector<std::string>		_methods;
 		std::map<int, std::string>     	_return;
