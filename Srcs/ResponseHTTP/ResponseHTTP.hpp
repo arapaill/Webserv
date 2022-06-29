@@ -35,6 +35,8 @@ class ResponseHTTP
 		bool		isAllowedMethod( std::string method, std::string path );
 		std::string	getDate();
 		bool		getLocation( std::string path, Config & locationConfig );
+		bool		checkReturn( std::string path );
+        bool	    CheckAutoIndex(std::vector<std::string > path, std::map<std::string, Config> location, size_t i);
 		bool		_isCgi();
 
 	private:

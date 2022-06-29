@@ -13,6 +13,29 @@ std::string ResponseHTTP::getStatusCode()	{ return (_statusCode); }
 std::string ResponseHTTP::getBodySize()		{ return (std::to_string(_body.size())); }
 std::string ResponseHTTP::getResponseHTTP() { return (_statusLine + _headers + _body); }
 
+bool	ResponseHTTP::CheckAutoIndex(std::vector<std::string > path, std::map<std::string, Config> location, size_t i)
+{
+    Config conf;
+
+    if(i >= path.size())
+        return(false);
+    if(path[i].front() != '*')
+        path[i] = '/' + path[i];
+    for(std::map<std::string, Config>::const_iterator ite = location.begin(); ite != location.end(); ite++)
+    {
+        if(path[i] == ite->first)
+        {
+            conf = ite->second;
+            if(conf.get_autoindex() == true)
+                return(true);
+            break ;
+        }
+    }
+    if(conf.get_location().size() != 0)
+        return(CheckAutoIndex(path, conf.get_location(), i + 1));
+    return(false);
+}
+
 void ResponseHTTP::GET(std::string path)
 {	
 	_directives["Date"] = getDate();
@@ -24,8 +47,9 @@ void ResponseHTTP::GET(std::string path)
 	struct stat buf;
 	std::string tmp = _config.get_root() + '/' + path;
 	stat(tmp.c_str(), &buf);
-
-	if (_config.get_autoindex() && S_ISDIR(buf.st_mode)) {
+	std::vector<std::string > vecPath = split(path, '/');
+	vecPath.erase(vecPath.begin());
+	if ((_config.get_autoindex() || (path != "/" && CheckAutoIndex(vecPath, _config.get_location(), 0))) && S_ISDIR(buf.st_mode)) {
 		generateAutoIndex(path);
 		_statusCode = generateStatusCode(200);
 	}

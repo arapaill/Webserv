@@ -265,6 +265,11 @@ void    Parser::is_location(std::vector<std::string> info, Config &config)
 
     cmd = split(info.at(0), ' ');
     location_name = cmd.at(1);
+    if(location_name == "/")
+    {
+        std::cout << RED << "Error: Config file: location: please write a directory name\n" << RESET;
+        exit(1);
+    }
     info.erase(info.begin());
     get_info(info, location_config);
     config.get_location()[location_name] = location_config;
