@@ -11,31 +11,30 @@ class Webserv
 		Webserv();
 		~Webserv();
 
-		void	run();
-		void	setConfig( std::vector<Config> & configs );
+		void		run();
+		void		setConfig( const std::vector<Config> & configs );
+
+	private:
+		void		launchServers();
+		void 		closeServers();
+		int			initServerSocket( Config serverConfig );
+		void		handleRead( int clientSocket, RequestHTTP & parsedRequest );
+		void 		sendResponse(int clientSocket, RequestHTTP & parsedRequest );
+		int			acceptNewClient( int serverSocket );
+
+		// Utils
+		bool		isServer( int readyFD ) const;
+		Config &	getServerConfig( std::string host );
+		std::string getTime() const;
+		int 		checkEnd( const std::string & str, const std::string & end ) const;
 
 	private:
 		Parser						_parser;
 		std::vector<Config>			_serversConfig;
-		std::vector<int>			_serversFD;
+		std::vector<int>			_serversSocket;
 		fd_set						_currentSockets, _readySockets;
 		int							_maxSocket;
 		std::map<int, RequestHTTP>	_clients;
-
-		void		init();
-		void		launchServers();
-		void 		closeServers();
-		int			initSocket( Config serverConfig );
-		void		handleRead( int clientFD, RequestHTTP & parsedRequest );
-		void 		sendResponse(int clientFD, RequestHTTP parsedRequest );
-		int			acceptNewClient( int serverFD );
-		bool		isServer( int readyFD );
-		void		closeSockets();
-
-		// Utils
-		Config &	getServerConfig( std::string host );
-		std::string getTime();
-
 
 };
 

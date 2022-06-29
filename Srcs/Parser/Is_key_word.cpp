@@ -270,7 +270,6 @@ void    Parser::is_location(std::vector<std::string> info, Config &config)
         std::cout << RED << "Error: Config file: location: please write a directory name\n" << RESET;
         exit(1);
     }
-    std::cout << location_name << std::endl;
     info.erase(info.begin());
     get_info(info, location_config);
     config.get_location()[location_name] = location_config;

@@ -1,7 +1,10 @@
 #include "RequestHTTP.hpp"
 
 // Public
-RequestHTTP::RequestHTTP() {};
+RequestHTTP::RequestHTTP() 
+{
+	_isOver = false;
+}
 RequestHTTP::RequestHTTP(RequestHTTP const & cpy) {	*this = cpy; };
 RequestHTTP::~RequestHTTP() {};
 
@@ -13,19 +16,24 @@ RequestHTTP & RequestHTTP::operator=( RequestHTTP const & rhs )
 	_accept = rhs._accept;
 	_host = rhs._host;
 	_transferEncoding = rhs._transferEncoding;
+	_isOver = rhs._isOver;
 
 	return (*this);
 };
 
-void RequestHTTP::parse( std::string request )
+void RequestHTTP::setRequest( std::string request ) { _request += request; };
+
+void RequestHTTP::parse()
 {
 	std::vector<std::string> headers;
 
-	_isOver = true;
+	headers = split(_request, '\n');
 
-	headers = split(request, '\n');
+	std::vector<std::string> firstLine = split(*headers.begin(), ' ');
+	_method = str_toupper(firstLine[0]);
+	_file = firstLine[1];
 
-	for (std::vector<std::string>::iterator it = headers.begin() ; it != headers.end() ; it++)
+	for (std::vector<std::string>::iterator it = headers.begin()++ ; it != headers.end() ; it++)
 	{
 		parseKeyword(*it);
 		if ((*it).size() == 1 && isspace((*it).back()))
@@ -45,25 +53,14 @@ std::string					RequestHTTP::getTransferEncoding()	{ return (_transferEncoding);
 // Private
 void RequestHTTP::parseKeyword(std::string line)
 {
-	if (str_toupper(line).find("GET") != std::string::npos 
-		|| str_toupper(line).find("POST") != std::string::npos
-		|| str_toupper(line).find("DELETE") != std::string::npos)
-		{
-			std::vector<std::string> tmp = split(line, ' ');
-			_method = str_toupper(tmp[0]);
-			_file = tmp[1];
-		}
-	else if (line.find("Accept:") != std::string::npos)
+	if (line.find("Accept:") != std::string::npos)
 			_accept = split(split(line, ' ')[1], ',');
 	else if (line.find("Host:") != std::string::npos)	
 		_host = split(line, ' ')[1];
 	else if (line.find("Transfer-Encoding:") != std::string::npos)
-	{
 		_transferEncoding = split(line, ' ')[1];
-		_isOver = false;
-	}
-/* 	else if (line.find("\r") != std::string::npos)
-		_isOver = false; */
+	else if (line.find("Content-Length") != std::string::npos)
+		_contentLength = split(line, ' ')[1];
 }
 
 std::string RequestHTTP::str_toupper( std::string s )

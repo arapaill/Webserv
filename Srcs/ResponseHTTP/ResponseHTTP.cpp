@@ -1,8 +1,5 @@
 #include "ResponseHTTP.hpp"
 
-// Public
-
-
 ResponseHTTP::ResponseHTTP(Config config, RequestHTTP request) : _config(config), _request(request)
 {
 	_getLocationFirst = true;
@@ -12,7 +9,9 @@ ResponseHTTP::ResponseHTTP(Config config, RequestHTTP request) : _config(config)
 
 ResponseHTTP::~ResponseHTTP() {};
 
-std::string ResponseHTTP::getBodySize() { return (std::to_string(_body.size())); }
+std::string ResponseHTTP::getStatusCode()	{ return (_statusCode); }
+std::string ResponseHTTP::getBodySize()		{ return (std::to_string(_body.size())); }
+std::string ResponseHTTP::getResponseHTTP() { return (_statusLine + _headers + _body); }
 
 bool	ResponseHTTP::CheckAutoIndex(std::vector<std::string > path, std::map<std::string, Config> location, size_t i)
 {
@@ -41,42 +40,32 @@ void ResponseHTTP::GET(std::string path)
 {	
 	_directives["Date"] = getDate();
 
-	if (checkConfig(path, "GET"))
+	if (checkConfigRules(path, "GET"))
 		return ;
 
+	// Permet de vérifier si le path est un dossier ou un fichier
 	struct stat buf;
 	std::string tmp = _config.get_root() + '/' + path;
 	stat(tmp.c_str(), &buf);
-	std::cout << "path: " << path << std::endl;
 	std::vector<std::string > vecPath = split(path, '/');
 	vecPath.erase(vecPath.begin());
-	std::cout << "size: " << vecPath.size() << std::endl;
 	if ((_config.get_autoindex() || (path != "/" && CheckAutoIndex(vecPath, _config.get_location(), 0))) && S_ISDIR(buf.st_mode))
 	{
-		std::cout << "IN IF\n";
 		generateAutoindex(path);
 		_statusCode = generateStatusCode(200);
-		createStatusLine();
-		createHeaders();
-		return;
 	}
-
-	if (_request.getFile().substr(0, 8) == "/cgi-bin")
-	{
+	else if (_request.getFile().substr(0, 8) == "/cgi-bin") {
 		CGIhandler cgi(_request, _config, path);
 		cgi.init_env();
-		cgi.execute_CGI();
-		this->_body = cgi.get_body();
+		cgi.execute_CGI_GET();
+		_body = cgi.get_body();
 		_statusCode = generateStatusCode(cgi.get_status_code());
 		_directives["Content-Type"] = "text/html";
 		_directives["Content-Length"] = std::to_string(_body.size());
 	}
-	/* Pour les CGI
-	** if (_request.getFile() == "/CGI_folder")
-	** 		my_cgi_function(); (Mets le résultat de l'éxecution du programme dans la variable _body)
-	** else */
 	else
 		generateBody(path);
+
 	createStatusLine();
 	createHeaders();
 }
@@ -88,25 +77,35 @@ void ResponseHTTP::POST(std::string path)
 
 	_directives["Date"] = getDate();
 
-	if (checkConfig(path, "POST"))
+	if (checkConfigRules(path, "POST"))
 		return ;
 
 	_statusCode = generateStatusCode(204);
 
-	//IF CGI
-	//ELSE ...
-	//Check si le fichier existe change le statut
-	check_file.open(_config.get_root() + path);
-	if (check_file && _request.getBody().size() > 0)
-		_statusCode = generateStatusCode(200);
-	else if (_request.getBody().size() > 0)
-		_statusCode = generateStatusCode(201);
-	check_file.close();
+	if (_request.getFile().substr(0, 8) == "/cgi-bin")
+	{
+		CGIhandler cgi(_request, _config, path);
+		cgi.init_env();
+		cgi.execute_CGI_POST();
+		this->_body = cgi.get_body();
+		_statusCode = generateStatusCode(cgi.get_status_code());
+		_directives["Content-Type"] = "text/html";
+		_directives["Content-Length"] = std::to_string(_body.size());
+	}
+	else
+	{
+		check_file.open(_config.get_root() + path);
+		if (check_file && _request.getBody().size() > 0)
+			_statusCode = generateStatusCode(200);
+		else if (_request.getBody().size() > 0)
+			_statusCode = generateStatusCode(201);
+		check_file.close();
 
-	//open et rajoute le body au fichier
-	file.open(_config.get_root() + path, std::ios_base::app);
-	file << _request.getBody();
-	file.close();
+		//open et rajoute le body au fichier
+		file.open(_config.get_root() + path, std::ios_base::app);
+		file << _request.getBody();
+		file.close();
+	}
 	createStatusLine();
 	createHeaders();
 }
@@ -115,48 +114,29 @@ void ResponseHTTP::DELETE(std::string path)
 {
 	_directives["Date"] = getDate();
 
-	if (checkConfig(path, "DELETE"))
+	if (checkConfigRules(path, "DELETE"))
 		return ;
 
-	deleteFile(path);	
+	deleteFile(path);
 	createStatusLine();
 	createHeaders();
 }
 
-bool ResponseHTTP::checkConfig(std::string path, std::string method)
+void ResponseHTTP::UNKNOWN(std::string path)
 {
-	if (!isAllowedMethod(method, _config.get_root() + path))
-	{
-		_statusCode = generateStatusCode(405);
-		createStatusLine();
-		createHeaders();
-		return (true);
-	}
+	_directives["Date"] = getDate();
+	_statusCode = generateStatusCode(405);
 
-	if (checkReturn(_config.get_root() + path))
-		return (true);
-
-	if (_config.get_client_max_body_size() != 0 && _config.get_client_max_body_size() < _request.getBody().size())
-	{
-		_statusCode = generateStatusCode(413);
-		createStatusLine();
-		createHeaders();
-		return (true);
-	}
-
-	return (false);
+	createStatusLine();
+	createHeaders();
 }
-
-
-std::string ResponseHTTP::getResponseHTTP() { return (_statusLine + _headers + _body); }
-std::string ResponseHTTP::getStatusCode() { return (_statusCode); }
 
 // Private
 void ResponseHTTP::initDirectives()
 {
 	_directives["Allow"] = "";
 	_directives["Content-Language"] = "";
-	_directives["Content-Length"] = "0\n";
+	_directives["Content-Length"] = "0";
 	_directives["Content-Location"] = "";
 	_directives["Content-Type"] = "";
 	_directives["Date"] = "";
@@ -241,14 +221,57 @@ void ResponseHTTP::createHeaders()
 	_headers += "Server: "			+ _directives["Server"] + "\n";
 	_headers += "Content-Length: "	+ _directives["Content-Length"] + "\n";
 
-	if (_directives["Last-Modified"] != "")
-		_headers += "Last-Modified: "	+ _directives["Last-Modified"] + "\n"; // Sans doute trop compliqué à implémenter
 	if (_directives["Content-Type"] != "")
 		_headers += "Content-Type: "	+ _directives["Content-Type"] + "\n";
-	if (_directives["Location"] != "")
-		_headers += "Content-Type: "	+ _directives["Location"] + "\n";
+	if (_directives["Location"].empty() == false)
+		_headers += "Location: "		+ _directives["Location"] + "\n";
 
 	_headers += "\n";
+}
+
+bool ResponseHTTP::_isCgi()
+{
+	std::string path = _request.getFile();
+	std::string comp;
+	std::vector<std::string> cgi_cond = _config.get_cgi_pass();
+
+	if (path.substr(0, 8) == "/cgi-bin")
+		return (true);
+	for (std::vector<std::string>::iterator it = cgi_cond.begin(); it != cgi_cond.end(); it++)
+	{
+		comp = *it;
+		if (path.substr(0, comp.size()) == comp)
+			return (true);
+	}
+	for (std::vector<std::string>::iterator it = cgi_cond.begin(); it != cgi_cond.end(); it++)
+	{
+		comp = *it;
+		if (path.substr(path.size() - comp.size(), comp.size()) == comp)
+			return (true);
+	}
+	return (false);
+}
+
+bool ResponseHTTP::checkConfigRules(std::string path, std::string method)
+{
+	if (isThereReturn(_config.get_root() + path))
+		return (true);
+
+	if (!isAllowedMethod(method, _config.get_root() + path)) {
+		_statusCode = generateStatusCode(405);
+		createStatusLine();
+		createHeaders();
+		return (true);
+	}
+
+	if (_config.get_client_max_body_size() != 0 && _config.get_client_max_body_size() < _request.getBody().size()) {
+		_statusCode = generateStatusCode(413);
+		createStatusLine();
+		createHeaders();
+		return (true);
+	}
+
+	return (false);
 }
 
 void ResponseHTTP::generateAutoindex(std::string path)
@@ -259,14 +282,12 @@ void ResponseHTTP::generateAutoindex(std::string path)
 
 	//std::cout << "Current working directory: " << dirPath << std::endl;
 
-	if (dir == NULL)
-	{
+	if (dir == NULL) {
 		std::cout << RED << "GenerateAutoindex(): Could not open \"" << dirPath << "\"\n"  << RESET;
 		exit(EXIT_FAILURE); // Pas bon
 	}
 
-	for (struct dirent *dirEntry = readdir(dir); dirEntry; dirEntry = readdir(dir))
-	{
+	for (struct dirent *dirEntry = readdir(dir); dirEntry; dirEntry = readdir(dir)) {
 		std::stringstream ss;
 		if (path != "/")
 			ss << "<li><a href=\"" << path << "/" << dirEntry->d_name << "\">" << dirEntry->d_name << "</a></li>\n";
@@ -275,8 +296,10 @@ void ResponseHTTP::generateAutoindex(std::string path)
 		index += ss.str();
 		ss.clear();
 	}
+
 	index += "<hr></body></html>";
 	closedir(dir);
+
 	_body = index;
 	_directives["Content-Length"] = std::to_string(_body.size());
 }
@@ -298,16 +321,14 @@ void ResponseHTTP::generateBody(std::string path)
 		_directives["Content-Type"] = "plain/text"; */
 
 
-	if (requested_file.is_open())
-	{
+	if (requested_file.is_open()) {
 		_statusCode = generateStatusCode(200);
 		buffer << requested_file.rdbuf();
 		requested_file.close();
 		_body = buffer.str();
 		_directives["Content-Length"] = std::to_string(_body.size());
 	}
-	else
-	{
+	else {
 		_statusCode = generateStatusCode(404);
 		_directives["Content-Type"] = "text/html";
 		_body = "<!doctype html><html><head><title>404</title></head><body><p><strong>Error : </strong>404 Not Found.</p></body></html>";
@@ -323,10 +344,8 @@ void ResponseHTTP::deleteFile(std::string path)
 	std::string	s		= _config.get_root() + "/" + path;
 	char *		c_str	= &s[0];
 
-	if (std::remove(c_str) != 0)
-	{
-		if (errno == ENOENT)
-		{
+	if (std::remove(c_str) != 0) {
+		if (errno == ENOENT) {
 			_statusCode = generateStatusCode(204);
 			return ;
 		}
@@ -348,6 +367,7 @@ std::string	ResponseHTTP::getDate(void)
 	gettimeofday(&tv, NULL);
 	tm = gmtime(&tv.tv_sec);
 	strftime(buffer, 100, "%a, %d %b %Y %H:%M:%S GMT", tm);
+
 	return (std::string(buffer));
 }
 
@@ -366,8 +386,7 @@ bool ResponseHTTP::isAllowedMethod(std::string method, std::string path)
 	if (configMethods.size() == 0)
 		return (true);
 
-	for (std::vector<std::string>::iterator it = configMethods.begin() ; it != configMethods.end() ; it++)
-	{
+	for (std::vector<std::string>::iterator it = configMethods.begin() ; it != configMethods.end() ; it++) {
 		if (*it == method)
 			return (true);
 	}
@@ -379,36 +398,31 @@ bool ResponseHTTP::getLocation(std::string path, Config & locationConfig)
 {
 	std::map<std::string, Config>	location;
 
-	if (_getLocationFirst)
-	{
+	if (_getLocationFirst) {
 		location = _config.get_location();
 		_getLocationFirst = false;
 	}
-	else
-	{
+	else {
 		//std::cout << "Current server name1: " << locationConfig.get_server_name() << "\n";
 		location = locationConfig.get_location();
 		//std::cout << "Location size: " << location.size() << "\n";
 	}
 
-	for (std::map<std::string, Config>::iterator it = location.begin() ; it != location.end() ; it++)
-	{
+	for (std::map<std::string, Config>::iterator it = location.begin() ; it != location.end() ; it++) {
 		//std::cout << "Current location: " << it->second.get_server_name() << "\n";
 
-		if (path.find(it->first) != std::string::npos)
-		{
+		if (path.find(it->first) != std::string::npos) {
 			locationConfig = it->second;
-			//std::cout << "TRUE\n";
 			//std::cout << "Current server name2: " << locationConfig.get_server_name() << "\n";
 			return (true);
 		}
 	}
 
-	//std::cout << "FALSE\n";
 	return (false);
 }
 
 // On vérifie que le contentType qu'on veut renvoyer au client est bien dans la liste des accept qu'il nous a envoyé.
+// Ne sert actuellement à rien
 bool ResponseHTTP::isAllowedContentType(std::string contentType)
 {
 	std::vector<std::string> requestAccept = _request.getAccept();
@@ -422,15 +436,13 @@ bool ResponseHTTP::isAllowedContentType(std::string contentType)
 	return (false);
 }
 
-// Vérifie si il y a un éventuel return dans le .conf ou ses location
-bool ResponseHTTP::checkReturn(std::string path)
+// Vérifie si il y a un éventuel return dans le .conf ou ses locations
+bool ResponseHTTP::isThereReturn(std::string path)
 {
 	Config locationConfig;
 
-	while (getLocation(_config.get_root() + path, locationConfig))
-	{
-		if (locationConfig.get_return().size() == 1)
-		{
+	while (getLocation(_config.get_root() + path, locationConfig)) {
+		if (locationConfig.get_return().empty() == false) {
 			_statusCode = generateStatusCode(locationConfig.get_return().begin()->first);
 			_directives["Location"] = locationConfig.get_return().begin()->second;
 
@@ -439,5 +451,6 @@ bool ResponseHTTP::checkReturn(std::string path)
 			return (true);
 		}
 	}
+
 	return (false);
 }
