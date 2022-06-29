@@ -26,7 +26,7 @@ void ResponseHTTP::GET(std::string path)
 	stat(tmp.c_str(), &buf);
 
 	if (_config.get_autoindex() && S_ISDIR(buf.st_mode)) {
-		generateAutoindex(path);
+		generateAutoIndex(path);
 		_statusCode = generateStatusCode(200);
 	}
 	else if (_request.getFile().substr(0, 8) == "/cgi-bin") {
@@ -232,7 +232,7 @@ bool ResponseHTTP::checkConfigRules(std::string path, std::string method)
 	if (isThereReturn(_config.get_root() + path))
 		return (true);
 
-	if (!isAllowedMethod(method, _config.get_root() + path)) {
+	if (isAllowedMethod(method, _config.get_root() + path) == false) {
 		_statusCode = generateStatusCode(405);
 		createStatusLine();
 		createHeaders();
@@ -249,7 +249,7 @@ bool ResponseHTTP::checkConfigRules(std::string path, std::string method)
 	return (false);
 }
 
-void ResponseHTTP::generateAutoindex(std::string path)
+void ResponseHTTP::generateAutoIndex(std::string path)
 {
 	std::string dirPath = _config.get_root() + path;
 	DIR * dir 			= opendir(dirPath.c_str());
@@ -257,9 +257,15 @@ void ResponseHTTP::generateAutoindex(std::string path)
 
 	//std::cout << "Current working directory: " << dirPath << std::endl;
 
+	// Comment entrer là dedans ?
 	if (dir == NULL) {
 		std::cout << RED << "GenerateAutoindex(): Could not open \"" << dirPath << "\"\n"  << RESET;
-		exit(EXIT_FAILURE); // Pas bon
+		_statusCode = generateStatusCode(404);
+		_directives["Content-Type"] = "text/html";
+		_body = "<!doctype html><html><head><title>404</title></head><body><p><strong>Error : </strong>404 Not Found.</p></body></html>";
+		_directives["Content-Length"] = std::to_string(_body.size());
+
+		return ;
 	}
 
 	for (struct dirent *dirEntry = readdir(dir); dirEntry; dirEntry = readdir(dir)) {
@@ -369,6 +375,9 @@ bool ResponseHTTP::isAllowedMethod(std::string method, std::string path)
 	return (false);
 }
 
+// Permet de vérifier s'il existe un location correspondant au @path demandé,
+// et le renvoie dans @locationConfig si c'est le cas.
+// À réécrire
 bool ResponseHTTP::getLocation(std::string path, Config & locationConfig)
 {
 	std::map<std::string, Config>	location;

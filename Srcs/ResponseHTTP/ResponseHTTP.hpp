@@ -27,7 +27,7 @@ class ResponseHTTP
 		void		createHeaders();
 		void 		generateBody( std::string filename );
 		std::string	generateStatusCode( int statusCode );
-		void		generateAutoindex( std::string path );
+		void		generateAutoIndex( std::string path );
 		void 		deleteFile( std::string path );
 		bool 		checkConfigRules( std::string path, std::string method );
 		bool		isThereReturn( std::string path );
