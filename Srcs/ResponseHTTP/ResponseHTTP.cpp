@@ -111,7 +111,7 @@ void ResponseHTTP::initDirectives()
 {
 	_directives["Allow"] = "";
 	_directives["Content-Language"] = "";
-	_directives["Content-Length"] = "0\n";
+	_directives["Content-Length"] = "0";
 	_directives["Content-Location"] = "";
 	_directives["Content-Type"] = "";
 	_directives["Date"] = "";
@@ -198,8 +198,8 @@ void ResponseHTTP::createHeaders()
 
 	if (_directives["Content-Type"] != "")
 		_headers += "Content-Type: "	+ _directives["Content-Type"] + "\n";
-	if (_directives["Location"] != "")
-		_headers += "Content-Type: "	+ _directives["Location"] + "\n";
+	if (_directives["Location"].empty() == false)
+		_headers += "Location: "		+ _directives["Location"] + "\n";
 
 	_headers += "\n";
 }
@@ -229,15 +229,15 @@ bool ResponseHTTP::_isCgi()
 
 bool ResponseHTTP::checkConfigRules(std::string path, std::string method)
 {
+	if (isThereReturn(_config.get_root() + path))
+		return (true);
+
 	if (!isAllowedMethod(method, _config.get_root() + path)) {
 		_statusCode = generateStatusCode(405);
 		createStatusLine();
 		createHeaders();
 		return (true);
 	}
-
-	if (isThereReturn(_config.get_root() + path))
-		return (true);
 
 	if (_config.get_client_max_body_size() != 0 && _config.get_client_max_body_size() < _request.getBody().size()) {
 		_statusCode = generateStatusCode(413);
@@ -417,7 +417,7 @@ bool ResponseHTTP::isThereReturn(std::string path)
 	Config locationConfig;
 
 	while (getLocation(_config.get_root() + path, locationConfig)) {
-		if (locationConfig.get_return().size() == 1) {
+		if (locationConfig.get_return().empty() == false) {
 			_statusCode = generateStatusCode(locationConfig.get_return().begin()->first);
 			_directives["Location"] = locationConfig.get_return().begin()->second;
 
