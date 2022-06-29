@@ -50,6 +50,7 @@ class ResponseHTTP
 		void 		deleteFile( std::string path );
 		bool		getLocation( std::string path, Config & locationConfig );
 		bool		checkReturn( std::string path );
+        bool	    CheckAutoIndex(std::vector<std::string > path, std::map<std::string, Config> location, size_t i);
 };
 
 #endif
