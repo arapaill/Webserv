@@ -88,19 +88,10 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 	for(std::size_t i = 0; i != vector_string.size() && vector_string.at(i) != "}"; i++)
 	{
 		info = vector_string.at(i);
+		
 		if (info.find("#") != std::string::npos)
 			info.erase(info.find("#"));
-		if (info.find("listen ") != std::string::npos)
-			is_listen(info, config);
-		else if (info.find("server_name ") != std::string::npos)
-			is_server_name(info, config);
-		else if (info.find("root ") != std::string::npos)
-			is_root(info, config);
-        else if (info.find("autoindex ") != std::string::npos)
-			is_autoindex(info, config);
-		else if (info.find("index ") != std::string::npos)
-			is_index(info, config);
-		else if (info.find("location ") != std::string::npos)
+		if (info.find("location ") != std::string::npos)
 		{
 			vector_info.push_back(info);
 			while(info.find("}") == std::string::npos)
@@ -112,6 +103,16 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
 			is_location(vector_info, config);
             vector_info.clear();
 		}
+		else if (info.find("listen ") != std::string::npos)
+			is_listen(info, config);
+		else if (info.find("server_name ") != std::string::npos)
+			is_server_name(info, config);
+		else if (info.find("root ") != std::string::npos)
+			is_root(info, config);
+        else if (info.find("autoindex ") != std::string::npos)
+			is_autoindex(info, config);
+		else if (info.find("index ") != std::string::npos)
+			is_index(info, config);
 		else if (info.find("error_page ") != std ::string::npos)
 			is_error_page(info, config);
 		else if (info.find("client_max_body_size ") != std::string::npos)
