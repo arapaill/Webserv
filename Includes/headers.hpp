@@ -32,6 +32,7 @@
 # include "Config.hpp"
 
 std::vector<std::string> split(const std::string & s, char separator);
+std::vector<std::string> split(const std::string & s);
 
 //* COLORS
 # define RED "\033[31m"
