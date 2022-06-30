@@ -80,52 +80,49 @@ void    Parser::init_vector_string(void)
 	}
 }
 
-void    Parser::get_info(std::vector<std::string> vector_string, Config &config)
+void    Parser::get_info(std::vector<std::string> vector_string, Config & config)
 {
-	std::string	info;
-	std::vector<std::string> vector_info;
-	
-	for(std::size_t i = 0; i != vector_string.size() && vector_string.at(i) != "}"; i++)
-	{
-		info = vector_string.at(i);
-		
-		if (info.find("#") != std::string::npos)
-			info.erase(info.find("#"));
-		if (info.find("location ") != std::string::npos)
-		{
-			vector_info.push_back(info);
-			while(info.find("}") == std::string::npos)
-			{
-				i++;
-				info = vector_string.at(i);
-				vector_info.push_back(info);
-			}
-			is_location(vector_info, config);
-            vector_info.clear();
+	for (std::vector<std::string>::const_iterator it = vector_string.begin(); it != vector_string.end(); it++) {
+		if (it->find("#") != std::string::npos)
+			continue ;
+		if (it->find("location ") != std::string::npos) {
+			std::vector<std::string> location_block;
+			size_t bracket_count = 0;
+			if (it->find("{") != std::string::npos)
+				bracket_count++;
+			do {
+				location_block.push_back(*it);
+				it++;
+				if (it->find("{") != std::string::npos)
+					bracket_count++;
+				if (it->find("}") != std::string::npos)
+					bracket_count--;
+			} while (bracket_count != 0);
+			location_block.push_back(*it);
+			is_location(location_block, config);
 		}
-		else if (info.find("listen ") != std::string::npos)
-			is_listen(info, config);
-		else if (info.find("server_name ") != std::string::npos)
-			is_server_name(info, config);
-		else if (info.find("root ") != std::string::npos)
-			is_root(info, config);
-        else if (info.find("autoindex ") != std::string::npos)
-			is_autoindex(info, config);
-		else if (info.find("index ") != std::string::npos)
-			is_index(info, config);
-		else if (info.find("error_page ") != std ::string::npos)
-			is_error_page(info, config);
-		else if (info.find("client_max_body_size ") != std::string::npos)
-			is_client_max_body_size(info, config);
-		else if (info.find("cgi_pass ") != std::string::npos)
-			is_fastcgi_param(info, config);
-		else if (info.find("alias ") != std::string::npos)
-			is_alias(info, config);
-		else if (info.find("allow_methods ") != std::string::npos)
-			is_allow_methods(info, config);
-		else if (info.find("return ") != std ::string::npos)
-			is_return(info, config);
-        info.clear();
+		else if (it->find("listen ") != std::string::npos)
+			is_listen(*it, config);
+		else if (it->find("server_name ") != std::string::npos)
+			is_server_name(*it, config);
+		else if (it->find("root ") != std::string::npos)
+			is_root(*it, config);
+        else if (it->find("autoindex ") != std::string::npos)
+			is_autoindex(*it, config);
+		else if (it->find("index ") != std::string::npos)
+			is_index(*it, config);
+		else if (it->find("error_page ") != std ::string::npos)
+			is_error_page(*it, config);
+		else if (it->find("client_max_body_size ") != std::string::npos)
+			is_client_max_body_size(*it, config);
+		else if (it->find("cgi_pass ") != std::string::npos)
+			is_fastcgi_param(*it, config);
+		else if (it->find("alias ") != std::string::npos)
+			is_alias(*it, config);
+		else if (it->find("allow_methods ") != std::string::npos)
+			is_allow_methods(*it, config);
+		else if (it->find("return ") != std ::string::npos)
+			is_return(*it, config);
 	}
 }
 
