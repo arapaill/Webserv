@@ -20,6 +20,33 @@ std::vector<std::string> split(const std::string & s, char separator)
     return (ret);
 }
 
+std::vector<std::string> split(std::string & s)
+{
+	std::vector<std::string>    ret;
+	std::string::size_type      prev_pos = 0, pos = 0;
+    char separator = ' ';
+
+    while(s[pos])
+    {
+        if(isspace(s[pos]))
+            s[pos] = ' ';
+        pos++;
+    }
+    pos = 0;
+    while ((pos = s.find(separator, pos)) != std::string::npos)
+    {
+        std::string substring = s.substr(prev_pos, pos-prev_pos);
+        ret.push_back(substring);
+
+        prev_pos = ++pos;
+    }
+    std::string last = s.substr(prev_pos);
+    if (last.size() > 0 && isspace(last.back()))
+        last.resize(last.size() - 1);
+    ret.push_back(last);
+    return (ret);
+}
+
 bool isNumber(const std::string& str)
 {
     const char *c = str.c_str();
@@ -46,7 +73,7 @@ void    Parser::is_listen(std::string info, Config &config)
 	std::string tmp;
     std::string	host;
 
-	cmd = split(info, ' ');
+	cmd = split(info);
     if(cmd.size() < 2)
     {
         std::cout << RED << "not enough directives for network\n" << RESET;
@@ -78,7 +105,7 @@ void    Parser::is_server_name(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
     std::string tmp;
-    cmd = split(info, ' ');
+    cmd = split(info);
 
     if(cmd.size() < 2)
     {
@@ -102,7 +129,7 @@ void    Parser::is_root(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
     std::string tmp;
-    cmd = split(info, ' ');
+    cmd = split(info);
 
     if(cmd.size() < 2)
     {
@@ -123,7 +150,7 @@ void    Parser::is_index(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
     std::string tmp;
-    cmd = split(info, ' ');
+    cmd = split(info);
 
     if(cmd.size() < 2)
     {
@@ -141,7 +168,7 @@ void    Parser::is_index(std::string info, Config &config)
 void    Parser::is_autoindex(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
-    cmd = split(info, ' ');
+    cmd = split(info);
 
     if(cmd.size() < 2)
     {
@@ -167,7 +194,7 @@ void    Parser::is_autoindex(std::string info, Config &config)
 void    Parser::is_client_max_body_size(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
-    cmd = split(info, ' ');
+    cmd = split(info);
     if(cmd.size() < 2)
     {
         std::cout << RED << "not enough directives for clien max body size\n" << RESET;
@@ -184,7 +211,7 @@ void    Parser::is_client_max_body_size(std::string info, Config &config)
 void    Parser::is_error_page(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
-    cmd = split(info, ' ');
+    cmd = split(info);
 
     if(cmd.size() < 3)
     {
@@ -202,7 +229,7 @@ void    Parser::is_error_page(std::string info, Config &config)
 void    Parser::is_return(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
-    cmd = split(info, ' ');
+    cmd = split(info);
 
     if(cmd.size() < 3)
     {
@@ -220,7 +247,7 @@ void    Parser::is_return(std::string info, Config &config)
 void    Parser::is_fastcgi_param(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
-    cmd = split(info, ' ');
+    cmd = split(info);
 
     if(cmd.size() < 2)
     {
@@ -238,7 +265,7 @@ void    Parser::is_fastcgi_param(std::string info, Config &config)
 void    Parser::is_alias(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
-    cmd = split(info, ' ');
+    cmd = split(info);
 
     if(cmd.size() < 2)
     {
@@ -251,10 +278,13 @@ void    Parser::is_alias(std::string info, Config &config)
 void    Parser::is_allow_methods(std::string info, Config &config)
 {
     std::vector<std::string> cmd;
-    cmd = split(info, ' ');
+    cmd = split(info);
 
     for(int i = 1; i != cmd.size(); i++)
+    {
+        std::cout << "METHODE: " << cmd.at(i) << std::endl;
         config.get_methods().push_back(cmd.at(i));
+    }
 }
 
 void    Parser::is_location(std::vector<std::string> info, Config &config)
