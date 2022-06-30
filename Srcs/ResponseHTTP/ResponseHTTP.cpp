@@ -236,23 +236,6 @@ bool ResponseHTTP::checkConfigRules(std::string path, std::string method)
 	std::vector<std::string> splittedPath = split(path, '/');
 	std::vector<std::string> lowestLevel = _config.get_methods();
 
-	std::cout << "lowestLevel.size(): " << _config.get_methods().size() << "\n";
-
-/* 	if (path == "/" && rootMethodValue.empty()) {
-		_statusCode = generateStatusCode(405);
-		createStatusLine();
-		createHeaders();
-		return (true);
-	}
-
-	if (isAllowedMethod(splittedPath, 1, _config.get_location(), method, rootMethodValue) == false &&
-		!(path == "/" && rootMethodValue.empty() == false)) {
-		_statusCode = generateStatusCode(405);
-		createStatusLine();
-		createHeaders();
-		return (true);
-	} */
-
 	lowestLevel = isAllowedMethod(splittedPath, 1, _config.get_location(), method, lowestLevel);
 
 	if (std::find(lowestLevel.begin(), lowestLevel.end(), method) == lowestLevel.end()) {
@@ -380,37 +363,27 @@ std::vector<std::string> ResponseHTTP::isAllowedMethod( std::vector<std::string>
 {
 	Config conf;
 
-	std::cout << "Receiving: ";
-    for (std::vector<std::string>::const_iterator it = lowestLevel.begin(); it != lowestLevel.end(); it++)
-		std::cout << *it << " ";
-	std::cout << "\n";
-
-    if (i >= path.size())
+	if (i >= path.size())
 		return (lowestLevel);
 
 	if (path[i].front() != '*')
 		path[i] = '/' + path[i];
 
-    for (std::map<std::string, Config>::const_iterator ite = location.begin(); ite != location.end(); ite++) {
+	for (std::map<std::string, Config>::const_iterator ite = location.begin(); ite != location.end(); ite++) {
 		// Si on trouve une location correspondant au path
-        if (path[i] == ite->first) {
-			std::cout << "Found location\n";
-            conf = ite->second;
+		if (path[i] == ite->first) {
+			conf = ite->second;
 			// Si cette location a une règle allow_methods
-            if (conf.get_methods().empty() == false) {
-				std::cout << "New lowest Level\n";
+			if (conf.get_methods().empty() == false) {
 				lowestLevel = conf.get_methods();
-        	}
+			}
 			// Si une autre location est trouvée
 			if (conf.get_location().empty() == false)
-       			return (isAllowedMethod(path, i + 1, conf.get_location(), method, lowestLevel));
+	   			return (isAllowedMethod(path, i + 1, conf.get_location(), method, lowestLevel));
 			break ;
 		}
-    }
-	std::cout << "Returning: ";
-    for (std::vector<std::string>::const_iterator it = lowestLevel.begin(); it != lowestLevel.end(); it++)
-		std::cout << *it << " ";
-	std::cout << "\n";
+	}
+
 	return (lowestLevel);
 }
 
