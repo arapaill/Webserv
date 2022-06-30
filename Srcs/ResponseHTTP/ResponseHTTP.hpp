@@ -32,12 +32,13 @@ class ResponseHTTP
 		bool 		checkConfigRules( std::string path, std::string method );
 		bool		isThereReturn( std::string path );
 		bool		isAllowedContentType( std::string contentType );
-		bool		isAllowedMethod( std::string method, std::string path );
+		std::vector<std::string>	isAllowedMethod( std::vector<std::string> path, size_t i, std::map<std::string, Config> location, std::string method, std::vector<std::string> lowestLevel );
 		std::string	getDate();
-		bool		getLocation( std::string path, Config & locationConfig );
 		bool		checkReturn( std::string path );
-        bool	    CheckAutoIndex(std::vector<std::string > path, std::map<std::string, Config> location, size_t i);
+        bool	    checkAutoIndex( std::vector<std::string > path, std::map<std::string, Config> location, size_t i );
 		bool		_isCgi();
+		bool		getLocation( std::string path, Config & locationConfig );
+	//	bool		checkAllowMethodLocation( std::vector<std::string> path, size_t i, std::map<std::string, Config> location, std::string method );
 
 	private:
 		Config								_config;

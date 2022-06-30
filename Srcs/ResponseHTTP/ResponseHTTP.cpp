@@ -13,29 +13,6 @@ std::string ResponseHTTP::getStatusCode()	{ return (_statusCode); }
 std::string ResponseHTTP::getBodySize()		{ return (std::to_string(_body.size())); }
 std::string ResponseHTTP::getResponseHTTP() { return (_statusLine + _headers + _body); }
 
-bool	ResponseHTTP::CheckAutoIndex(std::vector<std::string > path, std::map<std::string, Config> location, size_t i)
-{
-    Config conf;
-
-    if(i >= path.size())
-        return(false);
-    if(path[i].front() != '*')
-        path[i] = '/' + path[i];
-    for(std::map<std::string, Config>::const_iterator ite = location.begin(); ite != location.end(); ite++)
-    {
-        if(path[i] == ite->first)
-        {
-            conf = ite->second;
-            if(conf.get_autoindex() == true)
-                return(true);
-            break ;
-        }
-    }
-    if(conf.get_location().size() != 0)
-        return(CheckAutoIndex(path, conf.get_location(), i + 1));
-    return(false);
-}
-
 void ResponseHTTP::GET(std::string path)
 {	
 	_directives["Date"] = getDate();
@@ -49,7 +26,7 @@ void ResponseHTTP::GET(std::string path)
 	stat(tmp.c_str(), &buf);
 	std::vector<std::string > vecPath = split(path, '/');
 	vecPath.erase(vecPath.begin());
-	if ((_config.get_autoindex() || (path != "/" && CheckAutoIndex(vecPath, _config.get_location(), 0))) && S_ISDIR(buf.st_mode)) {
+	if ((_config.get_autoindex() || (path != "/" && checkAutoIndex(vecPath, _config.get_location(), 0))) && S_ISDIR(buf.st_mode)) {
 		generateAutoIndex(path);
 		_statusCode = generateStatusCode(200);
 	}
@@ -256,12 +233,35 @@ bool ResponseHTTP::checkConfigRules(std::string path, std::string method)
 	if (isThereReturn(_config.get_root() + path))
 		return (true);
 
-	if (isAllowedMethod(method, _config.get_root() + path) == false) {
+	std::vector<std::string> splittedPath = split(path, '/');
+	std::vector<std::string> lowestLevel = _config.get_methods();
+
+	std::cout << "lowestLevel.size(): " << _config.get_methods().size() << "\n";
+
+/* 	if (path == "/" && rootMethodValue.empty()) {
 		_statusCode = generateStatusCode(405);
 		createStatusLine();
 		createHeaders();
 		return (true);
 	}
+
+	if (isAllowedMethod(splittedPath, 1, _config.get_location(), method, rootMethodValue) == false &&
+		!(path == "/" && rootMethodValue.empty() == false)) {
+		_statusCode = generateStatusCode(405);
+		createStatusLine();
+		createHeaders();
+		return (true);
+	} */
+
+	lowestLevel = isAllowedMethod(splittedPath, 1, _config.get_location(), method, lowestLevel);
+
+	if (std::find(lowestLevel.begin(), lowestLevel.end(), method) == lowestLevel.end()) {
+		_statusCode = generateStatusCode(405);
+		createStatusLine();
+		createHeaders();
+		return (true);
+	}
+
 
 	if (_config.get_client_max_body_size() != 0 && _config.get_client_max_body_size() < _request.getBody().size()) {
 		_statusCode = generateStatusCode(413);
@@ -376,27 +376,42 @@ std::string	ResponseHTTP::getDate(void)
 	return (std::string(buffer));
 }
 
-bool ResponseHTTP::isAllowedMethod(std::string method, std::string path)
+std::vector<std::string> ResponseHTTP::isAllowedMethod( std::vector<std::string> path, size_t i, std::map<std::string, Config> location, std::string method, std::vector<std::string> lowestLevel )
 {
-	std::vector<std::string>	configMethods = _config.get_methods();
-	std::vector<std::string>	locationMethods;
-	Config						locationConfig;
+	Config conf;
 
-	while (getLocation(path, locationConfig) && locationConfig.get_methods().size() > 0)
-		locationMethods = locationConfig.get_methods();
+	std::cout << "Receiving: ";
+    for (std::vector<std::string>::const_iterator it = lowestLevel.begin(); it != lowestLevel.end(); it++)
+		std::cout << *it << " ";
+	std::cout << "\n";
 
-	if (locationMethods.size() > 0)
-		configMethods = locationMethods;
+    if (i >= path.size())
+		return (lowestLevel);
 
-	if (configMethods.size() == 0)
-		return (true);
+	if (path[i].front() != '*')
+		path[i] = '/' + path[i];
 
-	for (std::vector<std::string>::iterator it = configMethods.begin() ; it != configMethods.end() ; it++) {
-		if (*it == method)
-			return (true);
-	}
-
-	return (false);
+    for (std::map<std::string, Config>::const_iterator ite = location.begin(); ite != location.end(); ite++) {
+		// Si on trouve une location correspondant au path
+        if (path[i] == ite->first) {
+			std::cout << "Found location\n";
+            conf = ite->second;
+			// Si cette location a une règle allow_methods
+            if (conf.get_methods().empty() == false) {
+				std::cout << "New lowest Level\n";
+				lowestLevel = conf.get_methods();
+        	}
+			// Si une autre location est trouvée
+			if (conf.get_location().empty() == false)
+       			return (isAllowedMethod(path, i + 1, conf.get_location(), method, lowestLevel));
+			break ;
+		}
+    }
+	std::cout << "Returning: ";
+    for (std::vector<std::string>::const_iterator it = lowestLevel.begin(); it != lowestLevel.end(); it++)
+		std::cout << *it << " ";
+	std::cout << "\n";
+	return (lowestLevel);
 }
 
 // Permet de vérifier s'il existe un location correspondant au @path demandé,
@@ -426,6 +441,27 @@ bool ResponseHTTP::getLocation(std::string path, Config & locationConfig)
 		}
 	}
 
+	return (false);
+}
+
+bool ResponseHTTP::checkAutoIndex(std::vector<std::string> path, std::map<std::string, Config> location, size_t i)
+{
+	Config conf;
+
+	if (i >= path.size())
+		return (false);
+	if (path[i].front() != '*')
+		path[i] = '/' + path[i];
+	for (std::map<std::string, Config>::const_iterator ite = location.begin(); ite != location.end(); ite++) {
+		if (path[i] == ite->first) {
+			conf = ite->second;
+			if (conf.get_autoindex() == true)
+				return(true);
+			break ;
+		}
+	}
+	if (conf.get_location().empty() == false)
+		return (checkAutoIndex(path, conf.get_location(), i + 1));
 	return (false);
 }
 
