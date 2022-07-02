@@ -11,9 +11,6 @@ void INThandler(int signum)
 
 int main(int argc, char * argv[])
 {
-	Webserv server;
-	Parser	parser;
-
 	struct sigaction sigIntHandler;
 
 	sigIntHandler.sa_handler = INThandler;
@@ -22,10 +19,13 @@ int main(int argc, char * argv[])
 
 	sigaction(SIGINT, &sigIntHandler, NULL);
 
+	Parser	parser;
+
 	if (argc >= 2)
 		parser.set_path_file(argv[1]);
-
+	
 	parser.parse();
-	server.setConfig(parser.get_vector_config());
+
+	Webserv server(parser);
 	server.run();
 }

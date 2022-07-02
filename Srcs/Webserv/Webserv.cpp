@@ -2,26 +2,27 @@
 
 volatile bool g_keepRunning = true;
 
-Webserv::Webserv() {};
+Webserv::Webserv(Parser & parser) : _parser(parser) {};
 Webserv::~Webserv() {};
-
-void Webserv::setConfig( const std::vector<Config> & configs ) { _serversConfig = configs; };
 
 void Webserv::run()
 {
 	std::cout << YELLOW << getTime() << "Démarrage..." << RESET << std::endl;
+	std::cout << YELLOW << getTime() << "Config file : \"" << _parser.get_path_file() << "\"." << RESET << std::endl;
 
-	FD_ZERO(&_currentSockets);
+	FD_ZERO(&_connectionSockets);
 	launchServers();
 
+	std::map<int, Config> clientToServer;
+
 	while (g_keepRunning) {
-		_readySockets = _currentSockets;
+		readSockets = _connectionSockets;
 		
 		struct timeval timeout;
 		timeout.tv_sec = 1;
 		timeout.tv_usec = 0;
 
-		ssize_t selectRet = select(_maxSocket + 1, &_readySockets, NULL, NULL, &timeout);
+		ssize_t selectRet = select(_maxSocket + 1, &readSockets, NULL, NULL, &timeout);
 
 		if (selectRet < 0) {
 			if (g_keepRunning == false)
@@ -31,30 +32,43 @@ void Webserv::run()
 		}
 
 		// On vérifie si un client tente de contacter un serveur
-		for (std::vector<int>::iterator it = _serversSocket.begin(); it != _serversSocket.end(); it++) {
-			if (FD_ISSET(*it, &_readySockets)) {
-				if (isServer(*it)) {
-					int clientSocket = acceptNewClient(*it);
-					RequestHTTP clientRequest;
-					_clients[clientSocket] = clientRequest;
-					if (clientSocket > _maxSocket)
-						_maxSocket = clientSocket;
-					FD_SET(clientSocket, &_currentSockets);
-				}
+		for (std::map<int, Config>::iterator it = _servers.begin(); it != _servers.end(); it++) {
+			if (FD_ISSET(it->first, &readSockets)) {
+				std::cout << GREEN << getTime() << "New connection on " << it->second.get_host_name() << ":" << it->second.get_port() << RESET;
+				int clientSocket = acceptNewClient(it->first);
+				if (clientSocket < 0)
+					continue ;
+				clientToServer[clientSocket] = it->second;
+				RequestHTTP clientRequest;
+				_clients[clientSocket] = clientRequest;
+				if (clientSocket > _maxSocket)
+					_maxSocket = clientSocket;
+				FD_SET(clientSocket, &_connectionSockets);
 			}
 		}
 
 		// On gère les requêtes des clients qui se sont connectés
 		for (std::map<int, RequestHTTP>::iterator it = _clients.begin(); it != _clients.end();) {
-			if (FD_ISSET(it->first, &_readySockets)) {
-				handleRead(it->first, it->second);
-				FD_CLR(it->first, &_currentSockets);
-				if (it->first == _maxSocket)
-					_maxSocket -= 1;
-				if (it->second.isOver()) {
-					sendResponse(it->first, it->second);
+			if (FD_ISSET(it->first, &readSockets)) {
+				int ret = handleRead(it->first, it->second);
+				if (ret	== -1) {
+					// Respecte les consignes du pdf de correction, mais on ne passe plus le testeur de l'école
+					FD_CLR(it->first, &_connectionSockets);
 					close(it->first);
 					it = _clients.erase(it);
+				} else {
+					FD_CLR(it->first, &_connectionSockets);
+					if (it->first == _maxSocket)
+						_maxSocket -= 1;
+					if (it->second.isOver()) {
+						if (it->second.getHost().empty() == false) {
+							sendResponse(it->first, it->second, clientToServer.at(it->first));
+							clientToServer.erase(it->first);
+						}
+						std::cout << GREEN << getTime() << "Closing connection." << RESET << std::endl;
+						close(it->first);
+						it = _clients.erase(it);
+					}
 				}
 			}
 			else {
@@ -68,27 +82,28 @@ void Webserv::run()
 
 void Webserv::launchServers()
 {
-	for (std::vector<Config>::iterator it = _serversConfig.begin(); it != _serversConfig.end(); it++) {
+	std::vector<Config> serversConfig = _parser.get_vector_config();
+
+	for (std::vector<Config>::iterator it = serversConfig.begin(); it != serversConfig.end(); it++) {
 		std::cout << YELLOW << getTime() << "Launching server « " << it->get_server_name() << " »..." << RESET << std::endl;
 
 		int serverSocket = initServerSocket(*it);
-		_serversSocket.push_back(serverSocket);
-		FD_SET(serverSocket, &_currentSockets);
+		_servers[serverSocket] = *it;
+
+		FD_SET(serverSocket, &_connectionSockets);
 		_maxSocket = serverSocket;
 
 		std::cout << GREEN	<< getTime() << "Server successfuly launched. Listening on « " 
 							<< it->get_host_name() << ":" << std::to_string(it->get_port()) << " »." << RESET << std::endl;
 	}
-
-	std::cout << std::endl;
 }
 
 void Webserv::closeServers()
 {
 	std::cout << YELLOW << getTime() << "Shutting down server(s)..." << RESET;
 
-	for (std::vector<int>::iterator it = _serversSocket.begin(); it != _serversSocket.end(); it++)
-		close(*it);
+	for (std::map<int, Config>::iterator it = _servers.begin(); it != _servers.end(); it++)
+		close(it->first);
 }
 
 // S'occupe de créer le socket avec l'addresse IP 
@@ -97,7 +112,6 @@ void Webserv::closeServers()
 int Webserv::initServerSocket( Config serverConfig )
 {
 	int 				serverSocket;
-	struct sockaddr_in 	serverAddress;
 
 	fcntl(serverSocket, F_SETFL, O_NONBLOCK);
 	if ((serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
@@ -112,6 +126,8 @@ int Webserv::initServerSocket( Config serverConfig )
 		closeServers();
 		throw (std::logic_error("Error: setsockopt(SO_REUSEADDR) failed"));
 	}
+
+	struct sockaddr_in 	serverAddress;
 
 	memset((char *)&serverAddress, 0, sizeof(serverAddress));
 	serverAddress.sin_family = AF_INET;
@@ -135,12 +151,20 @@ int Webserv::acceptNewClient( int serverSocket )
 {
 	int clientSocket;
 
-	if ((clientSocket = accept(serverSocket, NULL, NULL)) < 0) {
+	
+	struct sockaddr_in 	clientAddress;
+	socklen_t addressLen = sizeof(clientAddress);
+
+	if ((clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddress, &addressLen)) < 0) {
 		if (errno != EWOULDBLOCK) {
-			 std::cerr << RED << "Error: accept() failed" << RESET << std::endl;
+			 std::cerr << RED << getTime() << "Error: Could not accept() client." << RESET << std::endl;
+			 perror("accept");
 			 return (-1);
 		}
 	}
+
+	std::cout << GREEN << " [Client: " << inet_ntoa(clientAddress.sin_addr) << "]." << RESET << std::endl;
+
 
 	if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) < 0) {
 		std::cerr << RED << "Error: fcntl() failed" << RESET << std::endl;
@@ -150,14 +174,13 @@ int Webserv::acceptNewClient( int serverSocket )
 	return (clientSocket);
 }
 
-void Webserv::handleRead( int clientSocket, RequestHTTP & parsedRequest )
+int Webserv::handleRead( int clientSocket, RequestHTTP & parsedRequest )
 {
 	char	request[BUFFER_SIZE + 1] = {0};
 	ssize_t	recvRet = recv(clientSocket, request, BUFFER_SIZE, 0);
 	
 	parsedRequest.setRequest(request);
 
-	//std::cout << "End of request: (" << &request[recvRet-2] << ")\nRet: " << recvRet << "\n";
 	//std::cout << "-------DEBUG-------\n" << parsedRequest.getRequest() << "\n-------------------\n";
 	
 	// Vérification que la requête est bien complète et terminée
@@ -172,10 +195,12 @@ void Webserv::handleRead( int clientSocket, RequestHTTP & parsedRequest )
 		}
 	}
 
-	if (recvRet == -1) {
-		// Remplit trop l'écran
-		//std::cerr << RED << getTime() << "Error recv(): " << strerror(errno) << RESET << std::endl;
-		return ;
+	if (recvRet == 0 || recvRet == -1) {
+		if (!recvRet)
+			std::cerr << RED << getTime() << "Connection was closed by client." << RESET << std::endl;
+		else
+			std::cerr << RED << getTime() << "Read error, closing connection." << RESET << std::endl;
+		return (-1);
 	}
 
 	if (parsedRequest.isOver()) {
@@ -188,11 +213,11 @@ void Webserv::handleRead( int clientSocket, RequestHTTP & parsedRequest )
 					<< "[Method: "	<< parsedRequest.getMethod()	<< "] "
 					<< "[File : "	<< parsedRequest.getFile()		<< "]" << RESET << std::endl;
 	}
+	return (0);
 }
 
-void Webserv::sendResponse( int clientSocket, RequestHTTP & parsedRequest )
+void Webserv::sendResponse( int clientSocket, RequestHTTP & parsedRequest, Config & serverConfig )
 {
-		Config			serverConfig = getServerConfig(parsedRequest.getHost());
 		ResponseHTTP	response(serverConfig, parsedRequest);
 
 		if (parsedRequest.getMethod() == "GET")
@@ -209,28 +234,10 @@ void Webserv::sendResponse( int clientSocket, RequestHTTP & parsedRequest )
 			std::cout	<< YELLOW << getTime()
 						<< ">> [Return Code: " << response.getStatusCode() << "] "
 						<< "[Body Size: " << response.getBodySize() << "]"
-						<< RESET << std::endl << std::endl;
+						<< RESET << std::endl;
 		}
 		else
 			std::cerr << RED << "Coulnd't respond to the client." << RESET << std::endl;
-}
-
-bool Webserv::isServer( int readyFD ) const
-{
-	for (std::vector<int>::const_iterator it = _serversSocket.begin() ; it != _serversSocket.end() ; it++)
-		if (*it == readyFD)
-			return (true);
-	return (false);
-}
-
-Config & Webserv::getServerConfig( std::string host )
-{
-	for (std::vector<Config>::iterator it = _serversConfig.begin() ; it != _serversConfig.end() ; it++) {
-		std::string configHost = it->get_host_name() + ":" + std::to_string(it->get_port());
-		if (host == configHost)
-			return (*it);
-	}
-	throw (std::invalid_argument("Error: Server Config Not Found"));
 }
 
 std::string Webserv::getTime() const

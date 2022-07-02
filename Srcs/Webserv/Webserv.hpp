@@ -8,31 +8,27 @@
 class Webserv
 {
 	public:
-		Webserv();
+		Webserv(Parser & parser);
 		~Webserv();
 
 		void		run();
-		void		setConfig( const std::vector<Config> & configs );
 
 	private:
 		void		launchServers();
 		void 		closeServers();
 		int			initServerSocket( Config serverConfig );
-		void		handleRead( int clientSocket, RequestHTTP & parsedRequest );
-		void 		sendResponse(int clientSocket, RequestHTTP & parsedRequest );
+		int			handleRead( int clientSocket, RequestHTTP & parsedRequest );
+		void 		sendResponse(int clientSocket, RequestHTTP & parsedRequest, Config & serverConfig );
 		int			acceptNewClient( int serverSocket );
 
 		// Utils
-		bool		isServer( int readyFD ) const;
-		Config &	getServerConfig( std::string host );
 		std::string getTime() const;
 		int 		checkEnd( const std::string & str, const std::string & end ) const;
 
 	private:
 		Parser						_parser;
-		std::vector<Config>			_serversConfig;
-		std::vector<int>			_serversSocket;
-		fd_set						_currentSockets, _readySockets;
+		std::map<int, Config>		_servers;
+		fd_set						_connectionSockets, readSockets;
 		int							_maxSocket;
 		std::map<int, RequestHTTP>	_clients;
 
