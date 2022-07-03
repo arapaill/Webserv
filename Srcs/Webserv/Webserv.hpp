@@ -16,7 +16,7 @@ class Webserv
 	private:
 		void		launchServers();
 		void 		closeServers();
-		int			initServerSocket( Config serverConfig );
+		int			initServerSocket( Config & serverConfig );
 		int			handleRead( int clientSocket, RequestHTTP & parsedRequest );
 		void 		sendResponse(int clientSocket, RequestHTTP & parsedRequest, Config & serverConfig );
 		int			acceptNewClient( int serverSocket );

@@ -109,7 +109,7 @@ void Webserv::closeServers()
 // S'occupe de créer le socket avec l'addresse IP 
 // ainsi que le port renseigné dans le fichier config.
 // Le socket est réutilisable et non-bloquant.
-int Webserv::initServerSocket( Config serverConfig )
+int Webserv::initServerSocket( Config & serverConfig )
 {
 	int 				serverSocket;
 
