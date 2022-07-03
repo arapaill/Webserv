@@ -205,6 +205,7 @@ void ResponseHTTP::createHeaders()
 	_headers += "\n";
 }
 
+/*
 bool ResponseHTTP::_isCgi()
 {
 	std::string path = _request.getFile();
@@ -227,7 +228,7 @@ bool ResponseHTTP::_isCgi()
 	}
 	return (false);
 }
-
+*/
 bool ResponseHTTP::checkConfigRules(std::string path, std::string method)
 {
 	if (isThereReturn(_config.get_root() + path))
@@ -307,7 +308,6 @@ void ResponseHTTP::generateBody(std::string path)
 		_directives["Content-Type"] = "text/" + ext; // renvoie "html", devrait renvoyer "text/html"
 	else if (isAllowedContentType("plain/text"))
 		_directives["Content-Type"] = "plain/text"; */
-
 
 	if (requested_file.is_open()) {
 		_statusCode = generateStatusCode(200);
