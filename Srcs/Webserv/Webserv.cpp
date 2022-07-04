@@ -51,24 +51,17 @@ void Webserv::run()
 		for (std::map<int, RequestHTTP>::iterator it = _clients.begin(); it != _clients.end();) {
 			if (FD_ISSET(it->first, &readSockets)) {
 				int ret = handleRead(it->first, it->second);
-				if (ret	== -1) {
-					// Respecte les consignes du pdf de correction, mais on ne passe plus le testeur de l'école
-					FD_CLR(it->first, &_connectionSockets);
+				FD_CLR(it->first, &_connectionSockets);
+				if (it->first == _maxSocket)
+					_maxSocket -= 1;
+				if (it->second.isOver()) {
+					if (it->second.getHost().empty() == false) {
+						sendResponse(it->first, it->second, clientToServer.at(it->first));
+						clientToServer.erase(it->first);
+					}
+					std::cout << GREEN << getTime() << "Closing connection." << RESET << std::endl;
 					close(it->first);
 					it = _clients.erase(it);
-				} else {
-					FD_CLR(it->first, &_connectionSockets);
-					if (it->first == _maxSocket)
-						_maxSocket -= 1;
-					if (it->second.isOver()) {
-						if (it->second.getHost().empty() == false) {
-							sendResponse(it->first, it->second, clientToServer.at(it->first));
-							clientToServer.erase(it->first);
-						}
-						std::cout << GREEN << getTime() << "Closing connection." << RESET << std::endl;
-						close(it->first);
-						it = _clients.erase(it);
-					}
 				}
 			}
 			else {
@@ -181,18 +174,11 @@ int Webserv::handleRead( int clientSocket, RequestHTTP & parsedRequest )
 	
 	parsedRequest.setRequest(request);
 
-	std::cout << "-------DEBUG-------\n" << parsedRequest.getRequest() << "\n-------------------\n";
+	//std::cout << "-------DEBUG-------\n" << parsedRequest.getRequest() << "\n-------------------\n";
 	
 	// Vérification que la requête est bien complète et terminée
 	if (parsedRequest.getRequest().find("\r\n\r\n") != std::string::npos) {
-		if (parsedRequest.getRequest().find("Content-Length: ") == std::string::npos) {
-			if (parsedRequest.getRequest().find("Transfer-Encoding: chunked") != std::string::npos) {
-				if (checkEnd(parsedRequest.getRequest(), "0\r\n\r\n") == 0)
-					parsedRequest.setIsOver(true);
-			}
-			else
-				parsedRequest.setIsOver(true);
-		}
+		parsedRequest.setIsOver(true);
 	}
 
 	if (recvRet == 0 || recvRet == -1) {
@@ -206,7 +192,7 @@ int Webserv::handleRead( int clientSocket, RequestHTTP & parsedRequest )
 	if (parsedRequest.isOver()) {
 		parsedRequest.parse();
 
-		//std::cout << "-------DEBUG-------\n" << parsedRequest.getRequest() << "\n-------------------\n";
+		std::cout << "-------DEBUG-------\n" << parsedRequest.getRequest() << "\n-------------------\n";
 
 		std::cout	<<	YELLOW << getTime()
 					<< "<< [Host: "	<< parsedRequest.getHost()		<< "] "
