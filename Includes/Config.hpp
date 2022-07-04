@@ -51,7 +51,7 @@ class Config
 		size_t							& get_client_max_body_size(void) {return(_client_max_body_size);};
 		std::map<std::string, Config>	& get_location(void) {return(_location);};
 		std::map<int, std::string>		& get_error_page(void) {return(_error_page);};
-		std::string					  		& get_cgi_pass(void) {return(_cgi_pass);};
+		std::string					  	& get_cgi_pass(void) {return(_cgi_pass);};
 		std::string     				& get_alias(void) {return(_alias);};
 		std::vector<std::string> 		& get_methods(void) {return(_methods);};
 		std::map<int, std::string> 		& get_return(void) {return(_return);};
