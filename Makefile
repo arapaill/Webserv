@@ -1,5 +1,5 @@
 CPP = c++
-CPPFLAGS = #-std=c++98
+CPPFLAGS = -std=c++98
 
 NAME = webserv
 SRCS = Srcs/main.cpp Srcs/Webserv/Webserv.cpp Srcs/ResponseHTTP/ResponseHTTP.cpp \
@@ -13,9 +13,12 @@ all: 		$(NAME)
 $(NAME): 	$(OBJS)
 			$(CPP) $(CPPFLAGS) -o $@ $^
 clean:
+			rm -f $(OBJS)
+
+fclean: clean
 			rm -f $(NAME)
 
-re: 		clean all
+re: 		fclean all
 
 exec: 		all
 			./webserv
