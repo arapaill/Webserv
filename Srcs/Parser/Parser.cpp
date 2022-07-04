@@ -121,7 +121,7 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config & config
 			is_index(*it, config);
 		else if (it->find("error_page ") != std ::string::npos)
 			is_error_page(*it, config);
-		else if (it->find("client_max_body_size ") != std::string::npos)
+		else if (it->find("client_body_buffer_size ") != std::string::npos)
 			is_client_max_body_size(*it, config);
 		else if (it->find("cgi ") != std::string::npos)
 			is_fastcgi_param(*it, config);
