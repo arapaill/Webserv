@@ -223,6 +223,7 @@ void    Parser::is_error_page(std::string info, Config &config)
 		std::cout << RED << "Error: .conf file: error page: too much directives\n" << RESET;
 		exit(1);
 	}
+	
 	config.get_error_page()[atoi(cmd.at(1).c_str())] = cmd.at(2);
 }
 

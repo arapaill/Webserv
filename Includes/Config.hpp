@@ -25,6 +25,7 @@ class Config
             this->_alias = rhs._alias;
             this->_methods = rhs._methods;
             this->_return = rhs._return;
+			this-> _error_page = rhs._error_page;
 			return *this;
 		}
 

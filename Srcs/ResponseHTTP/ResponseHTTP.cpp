@@ -181,26 +181,6 @@ void ResponseHTTP::initStatusCode()
 
 std::string ResponseHTTP::generateStatusCode(int statusCode)
 {
-	std::cout << "error page [" << statusCode << "]: " <<_config.get_error_page()[statusCode] << std::endl;
-	if(!_config.get_error_page()[statusCode].empty())
-	{
-		std::cout << "IN IF\n";
-		std::string path = _config.get_error_page()[statusCode];
-		std::cout << "path: " << path << std::endl;
-		std::string statusMessage;
-		std::ifstream file;
-		file.open(path);
-		if(!file.is_open())
-		{
-			std::cout << RED << "Error: .conf file: error_page: " << path << " do not exist\n" << RESET << std::endl;
-			exit(0);
-		}
-		//while(!file.eof())
-		//	std::get_line(file, statusMessage);
-		std::cout << "msg: " << statusMessage << std::endl;
-		return (std::to_string(statusCode) + " " + _statusCodes[statusCode]);
-	}
-	else
 		return (std::to_string(statusCode) + " " + _statusCodes[statusCode]);
 }
 
@@ -237,14 +217,49 @@ bool ResponseHTTP::checkConfigRules(std::string path, std::string method)
 
 	if (std::find(lowestLevel.begin(), lowestLevel.end(), method) == lowestLevel.end()) {
 		_statusCode = generateStatusCode(405);
+		if (!_config.get_error_page()[405].empty())
+		{
+			_statusCode = generateStatusCode(405);
+			std::stringstream	buffer;
+			std::string path = _config.get_error_page()[405];
+			std::ifstream errorFile;
+			errorFile.open(path);
+			if(!errorFile.is_open())
+			{
+				std::cout << RED << "Error: .conf file: error_page: " << path << " do not exist\n" << RESET << std::endl;
+				exit(0);
+			}
+			buffer << errorFile.rdbuf();
+			errorFile.close();
+			_body = buffer.str();
+			_directives["Content-Length"] = std::to_string(_body.size());
+		}
 		createStatusLine();
 		createHeaders();
+
 		return (true);
 	}
 
 
 	if (_config.get_client_max_body_size() != 0 && _config.get_client_max_body_size() < _request.getBody().size()) {
 		_statusCode = generateStatusCode(413);
+		if (!_config.get_error_page()[413].empty())
+		{
+			_statusCode = generateStatusCode(413);
+			std::stringstream	buffer;
+			std::string path = _config.get_error_page()[413];
+			std::ifstream errorFile;
+			errorFile.open(path);
+			if(!errorFile.is_open())
+			{
+				std::cout << RED << "Error: .conf file: error_page: " << path << " do not exist\n" << RESET << std::endl;
+				exit(0);
+			}
+			buffer << errorFile.rdbuf();
+			errorFile.close();
+			_body = buffer.str();
+			_directives["Content-Length"] = std::to_string(_body.size());
+		}
 		createStatusLine();
 		createHeaders();
 		return (true);
@@ -309,6 +324,22 @@ void ResponseHTTP::generateBody(std::string path)
 		_statusCode = generateStatusCode(200);
 		buffer << requested_file.rdbuf();
 		requested_file.close();
+		_body = buffer.str();
+		_directives["Content-Length"] = std::to_string(_body.size());
+	}
+	else if (!_config.get_error_page()[404].empty())
+	{
+		_statusCode = generateStatusCode(404);
+		std::string path = _config.get_error_page()[404];
+		std::ifstream errorFile;
+		errorFile.open(path);
+		if(!errorFile.is_open())
+		{
+			std::cout << RED << "Error: .conf file: error_page: " << path << " do not exist\n" << RESET << std::endl;
+			exit(0);
+		}
+		buffer << errorFile.rdbuf();
+		errorFile.close();
 		_body = buffer.str();
 		_directives["Content-Length"] = std::to_string(_body.size());
 	}

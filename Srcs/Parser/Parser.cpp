@@ -38,6 +38,7 @@ void    Parser::init_vector_string(void)
 	while(!file.eof())
 	{
 		std::getline(file, string_file);
+		
 		size_t i = 0;
 		for (std::string::iterator it = string_file.begin() ; it != string_file.end() ; it++)
 		{
@@ -53,25 +54,29 @@ void    Parser::init_vector_string(void)
 		}
 		while (isspace(string_file.back()))
 			string_file.resize(string_file.size() - 1);
-		if (string_file.find('{')  != std::string::npos)
-			count++;
-		if (string_file.find('}') != std::string::npos)
-			count--;
-		if(string_file.back() != ';' && string_file.back() != '}' && string_file.back() != '{')
+		if(string_file.front() != '#')
 		{
-			std::cout << RED << "Error: config file: line must finnish with ;, { or }\n" << RESET;
-			std::cout << RED << "line: " << string_file << "\n" << RESET;
-			exit(1);
-		}
-		if(string_file.back() == ';')
-			string_file.resize(string_file.size() - 1);
-		vector_string.push_back(string_file);
-		if (count == 0)
-		{
-			_allblock.push_back(vector_string);
-			vector_string.clear();
+			if (string_file.find('{')  != std::string::npos)
+				count++;
+			if (string_file.find('}') != std::string::npos)
+				count--;
+			if(string_file.back() != ';' && string_file.back() != '}' && string_file.back() != '{')
+			{
+				std::cout << RED << "Error: config file: line must finnish with ;, { or }\n" << RESET;
+				std::cout << RED << "line: " << string_file << "\n" << RESET;
+				exit(1);
+			}
+			if(string_file.back() == ';')
+				string_file.resize(string_file.size() - 1);
+			vector_string.push_back(string_file);
+			if (count == 0)
+			{
+				_allblock.push_back(vector_string);
+				vector_string.clear();
+			}
 		}
 		string_file.clear();
+		
 	}
 	if(count != 0)
 	{
@@ -90,14 +95,17 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config & config
 			size_t bracket_count = 0;
 			if (it->find("{") != std::string::npos)
 				bracket_count++;
-			do {
-				location_block.push_back(*it);
-				it++;
-				if (it->find("{") != std::string::npos)
-					bracket_count++;
-				if (it->find("}") != std::string::npos)
-					bracket_count--;
-			} while (bracket_count != 0);
+			if (it->find("}") == std::string::npos)
+			{
+				do {
+					location_block.push_back(*it);
+					it++;
+					if (it->find("{") != std::string::npos)
+						bracket_count++;
+					if (it->find("}") != std::string::npos)
+						bracket_count--;
+				} while (bracket_count != 0);
+			}
 			location_block.push_back(*it);
 			is_location(location_block, config);
 		}
@@ -152,4 +160,6 @@ void    Parser::parse(void)
 		get_info(_allblock.at(i), _config_file);
 		_vector_Config.push_back(_config_file);
 	}
+	std::cout << "IN PARSE: " << _config_file.get_error_page()[404] << std::endl;
+
 }
