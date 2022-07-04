@@ -248,27 +248,25 @@ void    Parser::is_return(std::string info, Config &config)
 void    Parser::is_fastcgi_param(std::string info, Config &config)
 {
 	std::vector<std::string> cmd;
+	std::string tmp;
 	cmd = split(info);
 
 	if(cmd.size() < 2)
 	{
-	   std::cout << RED << "Error: .conf file: cgi: not enough directives for cgi\n" << RESET;
+		std::cout << RED << "Error: .conf file: cgi_pass: not enough directives\n" << RESET;
 		exit(1);
 	}
-	if(cmd.size() > 2)
+	if(cmd.size() > 3)
 	{
-		std::cout << RED << "Error: .conf file: cgi: too much directives for cgi\n" << RESET;
+		std::cout << RED << "Error: .conf file: cgi_pass: too much directives\n" << RESET;
 		exit(1);
 	}
-	if(cmd.at(1) == "on")
-		config.set_cgi(true);
-	else if(cmd.at(1) == "off")
-		config.set_cgi(false);
+	if (cmd.size() == 3)
+		tmp =  cmd.at(1) + " " + cmd.at(2);
 	else
-	{
-		std::cout << RED << "Error: .conf file: cgi syntax error\n usage: cgi on; or cgi off\n" << RESET;
-		exit(1);
-	}
+		tmp = cmd.at(1);
+	
+	config.set_cgi_pass(tmp);
 }
 
 void    Parser::is_alias(std::string info, Config &config)
