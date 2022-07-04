@@ -551,7 +551,6 @@ std::string ResponseHTTP::isThereIndex(std::vector<std::string> path, std::map<s
 		path[i] = '/' + path[i];
 
 	for (std::map<std::string, Config>::const_iterator ite = location.begin(); ite != location.end(); ite++) {
-		std::cout << path[i] << " == " << ite->first << "\n";
 		if (path[i] == ite->first) {
 			conf = ite->second;
 			if (conf.get_index().empty() == false)
