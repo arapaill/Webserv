@@ -192,7 +192,7 @@ int Webserv::handleRead( int clientSocket, RequestHTTP & parsedRequest )
 	if (parsedRequest.isOver()) {
 		parsedRequest.parse();
 
-		std::cout << "-------DEBUG-------\n" << parsedRequest.getRequest() << "\n-------------------\n";
+		//std::cout << "-------DEBUG-------\n" << parsedRequest.getRequest() << "\n-------------------\n";
 
 		std::cout	<<	YELLOW << getTime()
 					<< "<< [Host: "	<< parsedRequest.getHost()		<< "] "

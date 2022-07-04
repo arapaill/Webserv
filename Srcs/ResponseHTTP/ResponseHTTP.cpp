@@ -45,6 +45,8 @@ void ResponseHTTP::GET(std::string path)
 			cgi.init_env();
 			cgi.execute_CGI_POST();
 			this->_body = cgi.get_body();
+			if (cgi.get_status_code() == 500)
+				createError(500);
 			_statusCode = generateStatusCode(cgi.get_status_code());
 			_directives["Content-Type"] = "text/html";
 			_directives["Content-Length"] = make_string(_body.size());
