@@ -37,12 +37,12 @@ void ResponseHTTP::GET(std::string path)
 		generateAutoIndex(path);
 		_statusCode = generateStatusCode(200);
 	}
-	else if (_request.getFile().substr(0, 8) == "/cgi-bin" || _config.get_cgi_pass().empty == false) {
-		std::string execute_file;
+	else if (_request.getFile().substr(0, 8) == "/cgi-bin" || _config.get_cgi_pass().empty() == false) {
+		std::string execute_file = "";
 		if (_request.getFile().substr(0, 8) == "cgi-bin")
-			execute_file = path;
+			execute_file += path;
 		else
-			execute_file = _config.get_cgi_pass();
+			execute_file += _config.get_cgi_pass();
 		check_file.open(_config.get_root() + execute_file);
 		if (check_file.is_open())
 		{
@@ -85,9 +85,14 @@ void ResponseHTTP::POST(std::string path)
 
 	_statusCode = generateStatusCode(204);
 
-	if (_request.getFile().substr(0, 8) == "/cgi-bin" || _config.get_cgi() == true)
+	if (_request.getFile().substr(0, 8) == "/cgi-bin" || _config.get_cgi_pass().empty() == false)
 	{
-		CGIhandler cgi(_request, _config, path);
+		std::string execute_file = "";
+		if (_request.getFile().substr(0, 8) == "cgi-bin")
+			execute_file += path;
+		else
+			execute_file += _config.get_cgi_pass();
+		CGIhandler cgi(_request, _config, execute_file);
 		cgi.init_env();
 		cgi.execute_CGI_POST();
 		this->_body = cgi.get_body();
