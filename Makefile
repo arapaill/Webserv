@@ -5,11 +5,12 @@ NAME = webserv
 SRCS = Srcs/main.cpp Srcs/Webserv/Webserv.cpp Srcs/ResponseHTTP/ResponseHTTP.cpp \
 Srcs/Parser/Parser.cpp Srcs/Parser/Is_key_word.cpp Srcs/RequestHTTP/RequestHTTP.cpp \
 Srcs/CGIhandler/CGIhandler.cpp
+OBJS = ${SRCS:.cpp=.o}
 
 
 all: 		$(NAME)
 
-$(NAME): 	$(SRCS)
+$(NAME): 	$(OBJS)
 			$(CPP) $(CPPFLAGS) -o $@ $^
 clean:
 			rm -f $(NAME)
