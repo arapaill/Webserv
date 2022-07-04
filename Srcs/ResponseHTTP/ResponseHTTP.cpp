@@ -18,14 +18,14 @@ void ResponseHTTP::GET(std::string path)
 	std::ifstream check_file;
 	_directives["Date"] = getDate();
 
+	std::string newPath = isThereRoot(split(path, '/'), 1, _config.get_location());
+	if (newPath.empty() == false) {
+		path = newPath;
+	}
+
 	if (checkConfigRules(path, "GET"))
 		return ;
 
-	std::string newPath = isThereRoot(split(path, '/'), 0, _config.get_location());
-	if (newPath.empty() == false) {
-		std::cout << "HEY\n";
-		path = newPath;
-	}
 
 	// Permet de vérifier si le path est un dossier ou un fichier
 	struct stat buf;
@@ -329,8 +329,18 @@ void ResponseHTTP::generateAutoIndex(std::string path)
 
 void ResponseHTTP::generateBody(std::string path)
 {
+	//std::cout << "path before: " << path << "\n";
+	if (path.find(_config.get_root()) != std::string::npos){
+		path = path.substr(path.find(_config.get_root()) + _config.get_root().size());
+		if (path.empty())
+			path = "/";
+		//std::cout << "path: " << path << "\n";
+	}
 	if (path == "/")
 		path = "/" + _config.get_index();
+
+	//std::cout << "path after: " << path << "\n";
+
 
 	std::ifstream		requested_file(_config.get_root() + path);
 	std::stringstream	buffer;
@@ -515,13 +525,21 @@ std::string ResponseHTTP::isThereRoot(std::vector<std::string> path, size_t i, s
 
 	if (i >= path.size())
 		return ("");
+
 	if (path[i].front() != '*')
 		path[i] = '/' + path[i];
+
 	for (std::map<std::string, Config>::const_iterator ite = location.begin(); ite != location.end(); ite++) {
 		if (path[i] == ite->first) {
 			conf = ite->second;
-			if (conf.get_autoindex() == true)
-				return (conf.get_root());
+			if (conf.get_root().empty() == false) {
+				std::string restOfPath;
+				i++;
+				while (i < path.size()) {
+					restOfPath += "/" + path[i++];
+				}
+				return (conf.get_root() + restOfPath);
+			}
 			break ;
 		}
 	}
