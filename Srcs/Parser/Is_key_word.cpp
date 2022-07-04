@@ -141,6 +141,8 @@ void    Parser::is_root(std::string info, Config &config)
 		std::cout << RED << "Error: .conf file: root: too much directives\n" << RESET;
 		exit(1);
 	}
+	if (cmd.at(1)[0] != '.')
+		tmp = '.' + cmd.at(1);
 	config.set_root(tmp);
 }
 
