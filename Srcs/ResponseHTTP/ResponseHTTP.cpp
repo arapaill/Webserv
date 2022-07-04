@@ -181,11 +181,7 @@ void ResponseHTTP::initStatusCode()
 
 std::string ResponseHTTP::generateStatusCode(int statusCode)
 {
-<<<<<<< HEAD
-		return (std::to_string(statusCode) + " " + _statusCodes[statusCode]);
-=======
 	return (make_string(statusCode) + " " + _statusCodes[statusCode]);
->>>>>>> 8c902c2d67675720935f1af9f9b29055b0c95296
 }
 
 void ResponseHTTP::createStatusLine()
