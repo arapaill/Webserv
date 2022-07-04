@@ -94,7 +94,7 @@ void Webserv::launchServers()
 		_maxSocket = serverSocket;
 
 		std::cout << GREEN	<< getTime() << "Server successfuly launched. Listening on « " 
-							<< it->get_host_name() << ":" << std::to_string(it->get_port()) << " »." << RESET << std::endl;
+							<< it->get_host_name() << ":" << make_string(it->get_port()) << " »." << RESET << std::endl;
 	}
 }
 
@@ -181,7 +181,7 @@ int Webserv::handleRead( int clientSocket, RequestHTTP & parsedRequest )
 	
 	parsedRequest.setRequest(request);
 
-	//std::cout << "-------DEBUG-------\n" << parsedRequest.getRequest() << "\n-------------------\n";
+	std::cout << "-------DEBUG-------\n" << parsedRequest.getRequest() << "\n-------------------\n";
 	
 	// Vérification que la requête est bien complète et terminée
 	if (parsedRequest.getRequest().find("\r\n\r\n") != std::string::npos) {
@@ -266,4 +266,12 @@ int Webserv::checkEnd( const std::string & str, const std::string & end ) const
 	}
 
 	return (0);
+}
+
+std::string Webserv::make_string(int n)
+{
+	std::stringstream 	ss;
+
+	ss << n;
+	return (ss.str());
 }

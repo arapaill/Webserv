@@ -19,6 +19,7 @@ class ResponseHTTP
 		std::string	getResponseHTTP();
 		std::string getStatusCode();
 		std::string getBodySize();
+		std::string	make_string(int n);
 
 	private:
 		void		initDirectives();

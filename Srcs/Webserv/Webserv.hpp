@@ -12,6 +12,7 @@ class Webserv
 		~Webserv();
 
 		void		run();
+		std::string	make_string(int n);
 
 	private:
 		void		launchServers();
