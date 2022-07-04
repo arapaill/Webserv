@@ -10,7 +10,7 @@ ResponseHTTP::ResponseHTTP(Config config, RequestHTTP request) : _config(config)
 ResponseHTTP::~ResponseHTTP() {};
 
 std::string ResponseHTTP::getStatusCode()	{ return (_statusCode); }
-std::string ResponseHTTP::getBodySize()		{ return (std::to_string(_body.size())); }
+std::string ResponseHTTP::getBodySize()		{ return (make_string(_body.size())); }
 std::string ResponseHTTP::getResponseHTTP() { return (_statusLine + _headers + _body); }
 
 void ResponseHTTP::GET(std::string path)
@@ -30,14 +30,14 @@ void ResponseHTTP::GET(std::string path)
 		generateAutoIndex(path);
 		_statusCode = generateStatusCode(200);
 	}
-	else if (_request.getFile().substr(0, 8) == "/cgi-bin") {
+	else if (_request.getFile().substr(0, 8) == "/cgi-bin" || _config.get_cgi() == true) {
 		CGIhandler cgi(_request, _config, path);
 		cgi.init_env();
 		cgi.execute_CGI_GET();
 		_body = cgi.get_body();
 		_statusCode = generateStatusCode(cgi.get_status_code());
 		_directives["Content-Type"] = "text/html";
-		_directives["Content-Length"] = std::to_string(_body.size());
+		_directives["Content-Length"] = make_string(_body.size());
 	}
 	else
 		generateBody(path);
@@ -58,7 +58,7 @@ void ResponseHTTP::POST(std::string path)
 
 	_statusCode = generateStatusCode(204);
 
-	if (_request.getFile().substr(0, 8) == "/cgi-bin")
+	if (_request.getFile().substr(0, 8) == "/cgi-bin" || _config.get_cgi() == true)
 	{
 		CGIhandler cgi(_request, _config, path);
 		cgi.init_env();
@@ -66,7 +66,7 @@ void ResponseHTTP::POST(std::string path)
 		this->_body = cgi.get_body();
 		_statusCode = generateStatusCode(cgi.get_status_code());
 		_directives["Content-Type"] = "text/html";
-		_directives["Content-Length"] = std::to_string(_body.size());
+		_directives["Content-Length"] = make_string(_body.size());
 	}
 	else
 	{
@@ -181,7 +181,11 @@ void ResponseHTTP::initStatusCode()
 
 std::string ResponseHTTP::generateStatusCode(int statusCode)
 {
+<<<<<<< HEAD
 		return (std::to_string(statusCode) + " " + _statusCodes[statusCode]);
+=======
+	return (make_string(statusCode) + " " + _statusCodes[statusCode]);
+>>>>>>> 8c902c2d67675720935f1af9f9b29055b0c95296
 }
 
 void ResponseHTTP::createStatusLine()
@@ -282,7 +286,7 @@ void ResponseHTTP::generateAutoIndex(std::string path)
 		_statusCode = generateStatusCode(404);
 		_directives["Content-Type"] = "text/html";
 		_body = "<!doctype html><html><head><title>404</title></head><body><p><strong>Error : </strong>404 Not Found.</p></body></html>";
-		_directives["Content-Length"] = std::to_string(_body.size());
+		_directives["Content-Length"] = make_string(_body.size());
 
 		return ;
 	}
@@ -301,7 +305,7 @@ void ResponseHTTP::generateAutoIndex(std::string path)
 	closedir(dir);
 
 	_body = index;
-	_directives["Content-Length"] = std::to_string(_body.size());
+	_directives["Content-Length"] = make_string(_body.size());
 }
 
 void ResponseHTTP::generateBody(std::string path)
@@ -325,7 +329,7 @@ void ResponseHTTP::generateBody(std::string path)
 		buffer << requested_file.rdbuf();
 		requested_file.close();
 		_body = buffer.str();
-		_directives["Content-Length"] = std::to_string(_body.size());
+		_directives["Content-Length"] = make_string(_body.size());
 	}
 	else if (!_config.get_error_page()[404].empty())
 	{
@@ -347,7 +351,7 @@ void ResponseHTTP::generateBody(std::string path)
 		_statusCode = generateStatusCode(404);
 		_directives["Content-Type"] = "text/html";
 		_body = "<!doctype html><html><head><title>404</title></head><body><p><strong>Error : </strong>404 Not Found.</p></body></html>";
-		_directives["Content-Length"] = std::to_string(_body.size());
+		_directives["Content-Length"] = make_string(_body.size());
 	}
 }
 
@@ -368,7 +372,7 @@ void ResponseHTTP::deleteFile(std::string path)
 
 	_statusCode = generateStatusCode(200);
 	_body = "<html><body><h1>File deleted.</h1></body></html>";
-	_directives["Content-Length"] = std::to_string(_body.size());
+	_directives["Content-Length"] = make_string(_body.size());
 	_directives["Content-Type"] = "text/html";
 }
 
@@ -497,4 +501,12 @@ bool ResponseHTTP::isThereReturn(std::string path)
 	}
 
 	return (false);
+}
+
+std::string ResponseHTTP::make_string(int n)
+{
+	std::stringstream 	ss;
+
+	ss << n;
+	return (ss.str());
 }
