@@ -15,6 +15,7 @@ std::string ResponseHTTP::getResponseHTTP() { return (_statusLine + _headers + _
 
 void ResponseHTTP::GET(std::string path)
 {	
+	std::ifstream check_file;
 	_directives["Date"] = getDate();
 
 	if (checkConfigRules(path, "GET"))
@@ -37,17 +38,30 @@ void ResponseHTTP::GET(std::string path)
 		_statusCode = generateStatusCode(200);
 	}
 	else if (_request.getFile().substr(0, 8) == "/cgi-bin" || _config.get_cgi() == true) {
-		CGIhandler cgi(_request, _config, path);
-		cgi.init_env();
-		cgi.execute_CGI_GET();
-		_body = cgi.get_body();
-		_statusCode = generateStatusCode(cgi.get_status_code());
-		_directives["Content-Type"] = "text/html";
-		_directives["Content-Length"] = make_string(_body.size());
+		check_file.open(_config.get_root() + path);
+		if (check_file.is_open())
+		{
+			CGIhandler cgi(_request, _config, path);
+			cgi.init_env();
+			cgi.execute_CGI_POST();
+			this->_body = cgi.get_body();
+			_statusCode = generateStatusCode(cgi.get_status_code());
+			_directives["Content-Type"] = "text/html";
+			_directives["Content-Length"] = make_string(_body.size());
+		}
+		else
+		{
+			_statusCode = generateStatusCode(404);
+			if(createError(404))
+			{
+				_directives["Content-Type"] = "text/html";
+				_body = "<!doctype html><html><head><title>404</title></head><body><p><strong>Error : </strong>404 Not Found.</p></body></html>";
+				_directives["Content-Length"] = make_string(_body.size());
+			}
+		}
 	}
 	else
 		generateBody(path);
-
 	createStatusLine();
 	createHeaders();
 }
