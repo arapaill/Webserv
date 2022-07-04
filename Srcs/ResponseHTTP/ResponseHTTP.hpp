@@ -26,6 +26,7 @@ class ResponseHTTP
 		void		initStatusCode();
 		void		createStatusLine();
 		void		createHeaders();
+		int			createError(int statusCode);
 		void 		generateBody( std::string filename );
 		std::string	generateStatusCode( int statusCode );
 		void		generateAutoIndex( std::string path );
