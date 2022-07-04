@@ -149,6 +149,7 @@ void	Parser::init_config_file(void)
 	_config_file.get_host_name().clear();
 	_config_file.get_methods().clear();
 	_config_file.get_return().clear();
+	_config_file.get_error_page().clear();
 }
 
 void    Parser::parse(void)
@@ -160,6 +161,4 @@ void    Parser::parse(void)
 		get_info(_allblock.at(i), _config_file);
 		_vector_Config.push_back(_config_file);
 	}
-	std::cout << "IN PARSE: " << _config_file.get_error_page()[404] << std::endl;
-
 }

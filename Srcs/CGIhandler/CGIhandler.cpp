@@ -6,7 +6,7 @@
 /*   By: jandre <jandre@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/14 09:19:08 by jandre            #+#    #+#             */
-/*   Updated: 2022/06/28 18:31:28 by jandre           ###   ########.fr       */
+/*   Updated: 2022/07/04 14:04:04 by jandre           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,7 +175,6 @@ void CGIhandler::execute_CGI_GET()
 	pid = fork();
 	if (pid == -1)
 	{
-		std::cerr << "Fork crashed." << std::endl;
 		_env["REDIRECT_STATUS"] = "500";
 		_body = "";
 	}
@@ -188,7 +187,6 @@ void CGIhandler::execute_CGI_GET()
 		_env["REDIRECT_STATUS"] = "200";
 		execve(_env["PATH_TRANSLATED"].c_str(), nll, env);
 		_env["REDIRECT_STATUS"] = "500";
-		std::cerr << "Execve crashed." << std::endl;
 		_body = "";
 	}
 	else
