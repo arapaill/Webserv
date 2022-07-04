@@ -335,8 +335,13 @@ void ResponseHTTP::generateBody(std::string path)
 			path = "/";
 		//std::cout << "path: " << path << "\n";
 	}
-	if (path == "/")
-		path = "/" + _config.get_index();
+	if (path == "/") {
+		std::string index = isThereIndex(split(path, '/'), _config.get_location(), 1);
+		if (index.empty())
+			path += _config.get_index();
+		else
+			path += index;
+	}
 
 	//std::cout << "path after: " << path << "\n";
 
@@ -539,6 +544,26 @@ bool ResponseHTTP::isThereReturn(std::string path)
 	}
 
 	return (false);
+}
+
+std::string ResponseHTTP::isThereIndex(std::vector<std::string> path, std::map<std::string, Config> location, size_t i)
+{
+	Config conf;
+
+	if (i >= path.size())
+		return ("");
+
+	for (std::map<std::string, Config>::const_iterator ite = location.begin(); ite != location.end(); ite++) {
+		if (path[i] == ite->first) {
+			conf = ite->second;
+			if (conf.get_index().empty() == false)
+				return(conf.get_index());
+			break ;
+		}
+	}
+	if (conf.get_location().empty() == false)
+		return (isThereIndex(path, conf.get_location(), i + 1));
+	return ("");
 }
 
 std::string ResponseHTTP::isThereRoot(std::vector<std::string> path, size_t i, std::map<std::string, Config> location)

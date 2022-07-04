@@ -41,6 +41,8 @@ class ResponseHTTP
 		std::string	checkCgiPass( std::vector<std::string > path, std::map<std::string, Config> location, size_t i );
 		bool		getLocation( std::string path, Config & locationConfig );
 		std::string isThereRoot( std::vector<std::string> path, size_t i, std::map<std::string, Config> location );
+		std::string isThereIndex( std::vector<std::string> path, std::map<std::string, Config> location, size_t i );
+
 
 	private:
 		Config								_config;
