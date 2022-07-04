@@ -38,6 +38,7 @@ class ResponseHTTP
 		std::string	getDate();
 		bool		checkReturn( std::string path );
         bool	    checkAutoIndex( std::vector<std::string > path, std::map<std::string, Config> location, size_t i );
+		std::string	checkCgiPass( std::vector<std::string > path, std::map<std::string, Config> location, size_t i );
 		bool		getLocation( std::string path, Config & locationConfig );
 		std::string isThereRoot( std::vector<std::string> path, size_t i, std::map<std::string, Config> location );
 

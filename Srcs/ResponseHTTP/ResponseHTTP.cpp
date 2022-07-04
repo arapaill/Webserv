@@ -33,17 +33,19 @@ void ResponseHTTP::GET(std::string path)
 	stat(tmp.c_str(), &buf);
 	std::vector<std::string > vecPath = split(path, '/');
 	vecPath.erase(vecPath.begin());
+	std::string cgi_pass = checkCgiPass(split(path, '/'), _config.get_location(), 1);
 	if ((_config.get_autoindex() || (path != "/" && checkAutoIndex(vecPath, _config.get_location(), 0))) && S_ISDIR(buf.st_mode)) {
 		generateAutoIndex(path);
 		_statusCode = generateStatusCode(200);
 	}
-	else if (_request.getFile().substr(0, 8) == "/cgi-bin" || _config.get_cgi_pass().empty() == false) {
+	else if (_request.getFile().substr(0, 8) == "/cgi-bin" || cgi_pass.empty() == false) 
+	{
+		std::cout << cgi_pass << std::endl;
 		std::string execute_file = "";
 		if (_request.getFile().substr(0, 8) == "/cgi-bin")
 			execute_file += path;
 		else
-			execute_file += _config.get_cgi_pass();
-		std::cout << "EXECEUTE : " << execute_file << std::endl;
+			execute_file += cgi_pass;
 		check_file.open(_config.get_root() + execute_file);
 		if (check_file.is_open())
 		{
@@ -85,14 +87,14 @@ void ResponseHTTP::POST(std::string path)
 		return ;
 
 	_statusCode = generateStatusCode(204);
-
-	if (_request.getFile().substr(0, 8) == "/cgi-bin" || _config.get_cgi_pass().empty() == false)
+	std::string cgi_pass = checkCgiPass(split(path, '/'), _config.get_location(), 1);
+	if (_request.getFile().substr(0, 8) == "/cgi-bin" || cgi_pass.empty() == false)
 	{
 		std::string execute_file = "";
 		if (_request.getFile().substr(0, 8) == "cgi-bin")
 			execute_file += path;
 		else
-			execute_file += _config.get_cgi_pass();
+			execute_file += cgi_pass;
 		CGIhandler cgi(_request, _config, execute_file);
 		cgi.init_env();
 		cgi.execute_CGI_POST();
@@ -276,9 +278,6 @@ bool ResponseHTTP::checkConfigRules(std::string path, std::string method)
 		}
 		return (true);
 	}
-
-	std::cout << "Max_body: " << _config.get_client_max_body_size() << "\n";
-
 	if (_config.get_client_max_body_size() != 0 && _config.get_client_max_body_size() < _request.getBody().size()) {
 		_statusCode = generateStatusCode(413);
 		if (!createError(413)) {
@@ -463,6 +462,29 @@ bool ResponseHTTP::getLocation(std::string path, Config & locationConfig)
 
 	return (false);
 }
+
+std::string ResponseHTTP::checkCgiPass(std::vector<std::string> path, std::map<std::string, Config> location, size_t i)
+{
+	Config conf;
+
+	if (i >= path.size())
+		return ("");
+
+	for (std::map<std::string, Config>::const_iterator ite = location.begin(); ite != location.end(); ite++) {
+		std::string ext = "*" + path[i].substr(path[i].find_last_of('.'));
+		std::cout << path[i] << " or " << ext << " == " << ite->first << "\n";
+		if (path[i] == ite->first || ext == ite->first) {
+			conf = ite->second;
+			if (conf.get_cgi_pass().empty() == false)
+				return(conf.get_cgi_pass());
+			break ;
+		}
+	}
+	if (conf.get_location().empty() == false)
+		return (checkCgiPass(path, conf.get_location(), i + 1));
+	return ("");
+}
+
 
 bool ResponseHTTP::checkAutoIndex(std::vector<std::string> path, std::map<std::string, Config> location, size_t i)
 {
