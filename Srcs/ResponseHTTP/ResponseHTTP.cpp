@@ -327,34 +327,27 @@ void ResponseHTTP::generateAutoIndex(std::string path)
 
 void ResponseHTTP::generateBody(std::string path)
 {
-	//std::cout << "path before: " << path << "\n";
 	if (path.find(_config.get_root()) != std::string::npos){
 		path = path.substr(path.find(_config.get_root()) + _config.get_root().size());
 		if (path.empty())
 			path = "/";
 		//std::cout << "path: " << path << "\n";
 	}
-	if (path == "/") {
+
+	struct stat buf;
+	std::string tmp = _config.get_root() + '/' + path;
+	stat(tmp.c_str(), &buf);
+
+	if (path == "/" || S_ISDIR(buf.st_mode)) {
 		std::string index = isThereIndex(split(path, '/'), _config.get_location(), 1);
 		if (index.empty())
 			path += _config.get_index();
 		else
-			path += index;
+			path += "/" + index;
 	}
-
-	//std::cout << "path after: " << path << "\n";
-
 
 	std::ifstream		requested_file(_config.get_root() + path);
 	std::stringstream	buffer;
-
-	// std::cout << "(" << _config.get_root() << ")" << path << std::endl;
-/* 	std::string ext = path.substr(path.find_last_of('.') + 1);  // A REFAIRE
-
-	if (isAllowedContentType(ext))
-		_directives["Content-Type"] = "text/" + ext; // renvoie "html", devrait renvoyer "text/html"
-	else if (isAllowedContentType("plain/text"))
-		_directives["Content-Type"] = "plain/text"; */
 
 	if (requested_file.is_open()) {
 		_statusCode = generateStatusCode(200);
@@ -554,7 +547,11 @@ std::string ResponseHTTP::isThereIndex(std::vector<std::string> path, std::map<s
 	if (i >= path.size())
 		return ("");
 
+	if (path[i].front() != '*')
+		path[i] = '/' + path[i];
+
 	for (std::map<std::string, Config>::const_iterator ite = location.begin(); ite != location.end(); ite++) {
+		std::cout << path[i] << " == " << ite->first << "\n";
 		if (path[i] == ite->first) {
 			conf = ite->second;
 			if (conf.get_index().empty() == false)
