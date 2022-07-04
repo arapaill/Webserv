@@ -37,14 +37,21 @@ void ResponseHTTP::GET(std::string path)
 		generateAutoIndex(path);
 		_statusCode = generateStatusCode(200);
 	}
-	else if (_request.getFile().substr(0, 8) == "/cgi-bin" || _config.get_cgi() == true) {
-		check_file.open(_config.get_root() + path);
+	else if (_request.getFile().substr(0, 8) == "/cgi-bin" || _config.get_cgi_pass().empty() == false) {
+		std::string execute_file = "";
+		if (_request.getFile().substr(0, 8) == "cgi-bin")
+			execute_file += path;
+		else
+			execute_file += _config.get_cgi_pass();
+		check_file.open(_config.get_root() + execute_file);
 		if (check_file.is_open())
 		{
-			CGIhandler cgi(_request, _config, path);
+			CGIhandler cgi(_request, _config, execute_file);
 			cgi.init_env();
 			cgi.execute_CGI_POST();
 			this->_body = cgi.get_body();
+			if (cgi.get_status_code() == 500)
+				createError(500);
 			_statusCode = generateStatusCode(cgi.get_status_code());
 			_directives["Content-Type"] = "text/html";
 			_directives["Content-Length"] = make_string(_body.size());
@@ -78,9 +85,14 @@ void ResponseHTTP::POST(std::string path)
 
 	_statusCode = generateStatusCode(204);
 
-	if (_request.getFile().substr(0, 8) == "/cgi-bin" || _config.get_cgi() == true)
+	if (_request.getFile().substr(0, 8) == "/cgi-bin" || _config.get_cgi_pass().empty() == false)
 	{
-		CGIhandler cgi(_request, _config, path);
+		std::string execute_file = "";
+		if (_request.getFile().substr(0, 8) == "cgi-bin")
+			execute_file += path;
+		else
+			execute_file += _config.get_cgi_pass();
+		CGIhandler cgi(_request, _config, execute_file);
 		cgi.init_env();
 		cgi.execute_CGI_POST();
 		this->_body = cgi.get_body();
@@ -240,9 +252,9 @@ int ResponseHTTP::createError(int statusCode)
 		errorFile.close();
 		_body = buffer.str();
 		_directives["Content-Length"] = std::to_string(_body.size());
-		return(0);
+		return(1);
 	}
-	return(1);
+	return(0);
 }
 
 bool ResponseHTTP::checkConfigRules(std::string path, std::string method)
@@ -257,7 +269,7 @@ bool ResponseHTTP::checkConfigRules(std::string path, std::string method)
 
 	if (std::find(lowestLevel.begin(), lowestLevel.end(), method) == lowestLevel.end()) {
 		_statusCode = generateStatusCode(405);
-		if (createError(405)) {
+		if (!createError(405)) {
 			createStatusLine();
 			createHeaders();
 		}
@@ -268,7 +280,7 @@ bool ResponseHTTP::checkConfigRules(std::string path, std::string method)
 
 	if (_config.get_client_max_body_size() != 0 && _config.get_client_max_body_size() < _request.getBody().size()) {
 		_statusCode = generateStatusCode(413);
-		if (createError(413)) {
+		if (!createError(413)) {
 			createStatusLine();
 			createHeaders();
 		}
@@ -350,7 +362,7 @@ void ResponseHTTP::generateBody(std::string path)
 	else 
 	{
 		_statusCode = generateStatusCode(404);
-		if (createError(404)) {
+		if (!createError(404)) {
 			_directives["Content-Type"] = "text/html";
 			_body = "<!doctype html><html><head><title>404</title></head><body><p><strong>Error : </strong>404 Not Found.</p></body></html>";
 			_directives["Content-Length"] = make_string(_body.size());

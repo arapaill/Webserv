@@ -123,7 +123,7 @@ void    Parser::get_info(std::vector<std::string> vector_string, Config & config
 			is_error_page(*it, config);
 		else if (it->find("client_body_buffer_size ") != std::string::npos)
 			is_client_max_body_size(*it, config);
-		else if (it->find("cgi ") != std::string::npos)
+		else if (it->find("cgi_pass ") != std::string::npos)
 			is_fastcgi_param(*it, config);
 		else if (it->find("alias ") != std::string::npos)
 			is_alias(*it, config);
@@ -141,7 +141,6 @@ void	Parser::init_config_file(void)
 	_config_file.get_index().clear();
 	_config_file.set_autoindex(false);
 	_config_file.set_client_max_body_size(0);
-    _config_file.set_cgi(false);
 	_config_file.get_alias().clear();
 	_config_file.get_location().clear();
 	_config_file.get_host().s_addr = inet_addr("0.0.0.0");
@@ -149,6 +148,7 @@ void	Parser::init_config_file(void)
 	_config_file.get_host_name().clear();
 	_config_file.get_methods().clear();
 	_config_file.get_return().clear();
+	_config_file.get_cgi_pass().clear();
 	_config_file.get_error_page().clear();
 }
 

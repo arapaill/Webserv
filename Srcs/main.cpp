@@ -25,7 +25,11 @@ int main(int argc, char * argv[])
 		parser.set_path_file(argv[1]);
 	
 	parser.parse();
-
 	Webserv server(parser);
-	server.run();
+	try	{
+		server.run();
+	}
+	catch (const std::exception& e) {
+		std::cerr << e.what();
+	}
 }
