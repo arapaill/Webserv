@@ -30,7 +30,7 @@ void ResponseHTTP::GET(std::string path)
 		generateAutoIndex(path);
 		_statusCode = generateStatusCode(200);
 	}
-	else if (_request.getFile().substr(0, 8) == "/cgi-bin") {
+	else if (_request.getFile().substr(0, 8) == "/cgi-bin" || _config.get_cgi() == true) {
 		CGIhandler cgi(_request, _config, path);
 		cgi.init_env();
 		cgi.execute_CGI_GET();
@@ -58,7 +58,7 @@ void ResponseHTTP::POST(std::string path)
 
 	_statusCode = generateStatusCode(204);
 
-	if (_request.getFile().substr(0, 8) == "/cgi-bin")
+	if (_request.getFile().substr(0, 8) == "/cgi-bin" || _config.get_cgi() == true)
 	{
 		CGIhandler cgi(_request, _config, path);
 		cgi.init_env();
