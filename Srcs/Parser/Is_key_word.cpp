@@ -267,6 +267,7 @@ void    Parser::is_fastcgi_param(std::string info, Config &config)
 		tmp = cmd.at(1);
 	
 	config.set_cgi_pass(tmp);
+	std::cout << "CONFIG CGI PASS : " << config.get_cgi_pass() << std::endl;
 }
 
 void    Parser::is_alias(std::string info, Config &config)

@@ -39,10 +39,11 @@ void ResponseHTTP::GET(std::string path)
 	}
 	else if (_request.getFile().substr(0, 8) == "/cgi-bin" || _config.get_cgi_pass().empty() == false) {
 		std::string execute_file = "";
-		if (_request.getFile().substr(0, 8) == "cgi-bin")
+		if (_request.getFile().substr(0, 8) == "/cgi-bin")
 			execute_file += path;
 		else
 			execute_file += _config.get_cgi_pass();
+		std::cout << "EXECEUTE : " << execute_file << std::endl;
 		check_file.open(_config.get_root() + execute_file);
 		if (check_file.is_open())
 		{
