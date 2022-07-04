@@ -40,7 +40,6 @@ void ResponseHTTP::GET(std::string path)
 	}
 	else if (_request.getFile().substr(0, 8) == "/cgi-bin" || cgi_pass.empty() == false) 
 	{
-		std::cout << cgi_pass << std::endl;
 		std::string execute_file = "";
 		if (_request.getFile().substr(0, 8) == "/cgi-bin")
 			execute_file += path;
@@ -467,13 +466,15 @@ std::string ResponseHTTP::checkCgiPass(std::vector<std::string> path, std::map<s
 {
 	Config conf;
 
+
 	if (i >= path.size())
 		return ("");
 
 	for (std::map<std::string, Config>::const_iterator ite = location.begin(); ite != location.end(); ite++) {
-		std::string ext = "*" + path[i].substr(path[i].find_last_of('.'));
-		std::cout << path[i] << " or " << ext << " == " << ite->first << "\n";
-		if (path[i] == ite->first || ext == ite->first) {
+		std::string ext;
+		if (path[i].find_last_of('.') != std::string::npos)
+			ext = "*" + path[i].substr(path[i].find_last_of('.'));
+		if (path[i] == ite->first || (!ext.empty() && ext == ite->first)) {
 			conf = ite->second;
 			if (conf.get_cgi_pass().empty() == false)
 				return(conf.get_cgi_pass());
