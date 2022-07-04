@@ -39,7 +39,7 @@ class ResponseHTTP
 		bool		checkReturn( std::string path );
         bool	    checkAutoIndex( std::vector<std::string > path, std::map<std::string, Config> location, size_t i );
 		bool		getLocation( std::string path, Config & locationConfig );
-	//	bool		checkAllowMethodLocation( std::vector<std::string> path, size_t i, std::map<std::string, Config> location, std::string method );
+		std::string isThereRoot( std::vector<std::string> path, size_t i, std::map<std::string, Config> location );
 
 	private:
 		Config								_config;

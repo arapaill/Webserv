@@ -21,6 +21,12 @@ void ResponseHTTP::GET(std::string path)
 	if (checkConfigRules(path, "GET"))
 		return ;
 
+	std::string newPath = isThereRoot(split(path, '/'), 0, _config.get_location());
+	if (newPath.empty() == false) {
+		std::cout << "HEY\n";
+		path = newPath;
+	}
+
 	// Permet de vérifier si le path est un dossier ou un fichier
 	struct stat buf;
 	std::string tmp = _config.get_root() + '/' + path;
@@ -255,17 +261,44 @@ bool ResponseHTTP::checkConfigRules(std::string path, std::string method)
 		_statusCode = generateStatusCode(405);
 		if(createError(405))
 		{
+			std::stringstream	buffer;
+			std::string path = _config.get_error_page()[405];
+			std::ifstream errorFile;
+			errorFile.open(path);
+			if(!errorFile.is_open())
+			{
+				std::cout << RED << "Error: .conf file: error_page: " << path << " do not exist\n" << RESET << std::endl;
+				exit(0);
+			}
+			buffer << errorFile.rdbuf();
+			errorFile.close();
+			_body = buffer.str();
+			_directives["Content-Length"] = std::to_string(_body.size());
 			createStatusLine();
 			createHeaders();
 		}
 		return (true);
 	}
 
+	std::cout << "Max_body: " << _config.get_client_max_body_size() << "\n";
 
 	if (_config.get_client_max_body_size() != 0 && _config.get_client_max_body_size() < _request.getBody().size()) {
 		_statusCode = generateStatusCode(413);
 		if(createError(413))
 		{
+			std::stringstream	buffer;
+			std::string path = _config.get_error_page()[413];
+			std::ifstream errorFile;
+			errorFile.open(path);
+			if(!errorFile.is_open())
+			{
+				std::cout << RED << "Error: .conf file: error_page: " << path << " do not exist\n" << RESET << std::endl;
+				exit(0);
+			}
+			buffer << errorFile.rdbuf();
+			errorFile.close();
+			_body = buffer.str();
+			_directives["Content-Length"] = std::to_string(_body.size());
 			createStatusLine();
 			createHeaders();
 		}
@@ -492,6 +525,27 @@ bool ResponseHTTP::isThereReturn(std::string path)
 	}
 
 	return (false);
+}
+
+std::string ResponseHTTP::isThereRoot(std::vector<std::string> path, size_t i, std::map<std::string, Config> location)
+{
+	Config conf;
+
+	if (i >= path.size())
+		return ("");
+	if (path[i].front() != '*')
+		path[i] = '/' + path[i];
+	for (std::map<std::string, Config>::const_iterator ite = location.begin(); ite != location.end(); ite++) {
+		if (path[i] == ite->first) {
+			conf = ite->second;
+			if (conf.get_autoindex() == true)
+				return (conf.get_root());
+			break ;
+		}
+	}
+	if (conf.get_location().empty() == false)
+		return (isThereRoot(path, i + 1, conf.get_location()));
+	return ("");
 }
 
 std::string ResponseHTTP::make_string(int n)
