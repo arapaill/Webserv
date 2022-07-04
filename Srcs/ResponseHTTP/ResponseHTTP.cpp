@@ -181,7 +181,27 @@ void ResponseHTTP::initStatusCode()
 
 std::string ResponseHTTP::generateStatusCode(int statusCode)
 {
-	return (std::to_string(statusCode) + " " + _statusCodes[statusCode]);
+	std::cout << "error page [" << statusCode << "]: " <<_config.get_error_page()[statusCode] << std::endl;
+	if(!_config.get_error_page()[statusCode].empty())
+	{
+		std::cout << "IN IF\n";
+		std::string path = _config.get_error_page()[statusCode];
+		std::cout << "path: " << path << std::endl;
+		std::string statusMessage;
+		std::ifstream file;
+		file.open(path);
+		if(!file.is_open())
+		{
+			std::cout << RED << "Error: .conf file: error_page: " << path << " do not exist\n" << RESET << std::endl;
+			exit(0);
+		}
+		//while(!file.eof())
+		//	std::get_line(file, statusMessage);
+		std::cout << "msg: " << statusMessage << std::endl;
+		return (std::to_string(statusCode) + " " + _statusCodes[statusCode]);
+	}
+	else
+		return (std::to_string(statusCode) + " " + _statusCodes[statusCode]);
 }
 
 void ResponseHTTP::createStatusLine()
